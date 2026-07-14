@@ -701,3 +701,19 @@ function downloadLogs() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+// Show user profile authentication alert
+function showProfileAlert() {
+    alert("Authentication and login credentials coming soon!");
+}
+
+// Modal open/close actions
+function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+}
+
+function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}

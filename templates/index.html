@@ -39,20 +39,19 @@
                 </div>
             </div>
 
-            <!-- Help Icon -->
-            <button type="button" class="icon-btn" title="Help Documentation" onclick="window.open('/docs', '_blank')">
+            <!-- Globe Icon (navigates to Developer Tools / Logs) -->
+            <button type="button" class="icon-btn" title="Developer Tools / Logs" onclick="window.location.href='/dev/logs'">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/>
                 </svg>
             </button>
 
-            <!-- User Avatar -->
-            <div class="user-avatar" title="User Profile">
-                <span class="avatar-letter">A</span>
-            </div>
-
-            <!-- Dev Logs Link -->
-            <a href="/dev/logs" class="nav-text-btn">Developer Tools</a>
+            <!-- User Profile -->
+            <button type="button" class="icon-btn user-avatar-btn" title="User Profile" onclick="showProfileAlert()">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </button>
 
             <!-- Clear Data Action -->
             <button type="button" onclick="confirmClearAllData()" class="clear-data-action" title="Clear Server Session">
@@ -282,16 +281,56 @@
         <!-- Premium Footer -->
         <footer class="google-footer">
             <div class="footer-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Documentation</a>
-                <a href="https://github.com/abhinandnm/apk-maker" target="_blank">GitHub</a>
-                <a href="#" class="status-indicator-link">
-                    <span class="status-dot"></span>
-                    <span>Systems Operational</span>
-                </a>
+                <a href="javascript:void(0)" onclick="openModal('privacy-modal')">Privacy</a>
+                <a href="javascript:void(0)" onclick="openModal('terms-modal')">Terms</a>
             </div>
         </footer>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal-overlay" onclick="closeModal('privacy-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="modal-close-btn" onclick="closeModal('privacy-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Data Isolation & Privacy</h3>
+                <p>All compilation builds run inside isolated sandboxed containers on our cloud server. Your source code and access keys are kept secure and separate from other operations.</p>
+                
+                <h3>Automatic Data Deletion</h3>
+                <p>Your uploaded ZIP archives, cloned Git repositories, compilation log outputs, and generated APK files are hosted temporarily on the server and are automatically and permanently deleted <strong>5 hours</strong> after creation.</p>
+                
+                <h3>No Personal Tracking</h3>
+                <p>We do not collect or log personal user details, IP addresses, or project data beyond the active lifecycle of your build compilation.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('privacy-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions Modal -->
+    <div id="terms-modal" class="modal-overlay" onclick="closeModal('terms-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Terms and Conditions</h2>
+                <button class="modal-close-btn" onclick="closeModal('terms-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Usage Policy</h3>
+                <p>This application is provided as-is for development and debugging purposes. We do not guarantee compilation uptime or build success rates.</p>
+                
+                <h3>Liability Limits</h3>
+                <p>We are not liable for any data loss, compilation issues, project corruption, or server downtime experienced while using the service.</p>
+                
+                <h3>Acceptable Use</h3>
+                <p>You agree not to use this builder to compile malicious software, trojans, adware, or tools designed for coordinated cyber threats. Abuse will result in access blocks.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('terms-modal')">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Custom Script File -->
