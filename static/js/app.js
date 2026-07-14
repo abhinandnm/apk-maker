@@ -598,7 +598,48 @@ function toggleNotifications() {
     }
 }
 
-// Close dropdown if clicked outside
+// Background poller for auto-updates
+let lastKnownCommitHash = null;
+function pollForAutoUpdates() {
+    fetch('/latest-update')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success' && data.commits && data.commits.length > 0) {
+                const latestHash = data.commits[0].hash;
+                if (lastKnownCommitHash === null) {
+                    // Initial load, just save the hash
+                    lastKnownCommitHash = latestHash;
+                } else if (lastKnownCommitHash !== latestHash) {
+                    // A new commit was pulled! 
+                    lastKnownCommitHash = latestHash;
+                    const msg = data.commits[0].message;
+                    sendBrowserNotification(
+                        "System Autoupdated 🚀", 
+                        `New code pulled: ${msg}`, 
+                        true
+                    );
+                    
+                    // Show a visual warning in the logs too
+                    const logs = document.getElementById('logs');
+                    if (logs) {
+                        const div = document.createElement('div');
+                        div.style.color = "var(--color-blue)";
+                        div.style.marginTop = "10px";
+                        div.innerText = `[SYSTEM] Auto-update applied! New commit: ${msg}. Refreshing page in 5 seconds...`;
+                        logs.appendChild(div);
+                    }
+                    
+                    // Automatically refresh the page to apply the new UI/JS code
+                    setTimeout(() => window.location.reload(), 5000);
+                }
+            }
+        })
+        .catch(err => console.log("Auto-update poll failed (server restarting?):", err));
+}
+
+// Start polling every 15 seconds
+setInterval(pollForAutoUpdates, 15000);
+setTimeout(pollForAutoUpdates, 2000); // Check shortly after initial load
 document.addEventListener('click', function(event) {
     const dropdown = document.getElementById('notification-dropdown');
     const btn = document.getElementById('notification-btn');
