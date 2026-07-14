@@ -221,12 +221,12 @@ function checkBuildStatus(buildId) {
                     appendLog('', '');
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
                     appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
-                    appendLog('   This is usually caused by a stale Gradle Daemon or low server memory.', 'warning');
+                    appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
+                    appendLog('   Note: Refreshing the browser or opening on another device does NOT cause this.', 'warning');
                     appendLog('', '');
-                    appendLog('   ✅  To fix this:', 'system');
-                    appendLog('   1. Refresh your browser (F5 or Ctrl+R / Cmd+R)', 'system');
-                    appendLog('   2. Then click "Build APK" again to retry the compilation.', 'system');
-                    appendLog('   3. If the issue persists, use the "Clear Session" button in the top toolbar, then try again.', 'system');
+                    appendLog('   ✅  To fix this, simply:', 'system');
+                    appendLog('   1. Click "Build APK" again to retry — the build was not caused by your browser.', 'system');
+                    appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
                 }
                 
@@ -312,6 +312,10 @@ function connectLogStream(buildId, createdAt) {
     const startMs = createdAt ? new Date(createdAt).getTime() : Date.now();
     startTimer(startMs);
     
+    // Reset per-stream state flags
+    window._sseErrorLogged = false;
+    window._buildSuccessHandled = false;
+    
     eventSource = new EventSource(`/stream/${buildId}`);
     
     eventSource.onmessage = function(e) {
@@ -360,24 +364,29 @@ function connectLogStream(buildId, createdAt) {
             enableSubmitButton(true);
         }
         
-        // Show user-friendly retry guidance when compilation is interrupted
+        // Show user-friendly retry guidance when compilation is interrupted (via streamed lines)
         if (line.includes('Build pipeline was interrupted') || line.includes('Compilation aborted')) {
             appendLog('', '');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
             appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
-            appendLog('   This is usually caused by a stale Gradle Daemon or low server memory.', 'warning');
+            appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
+            appendLog('   Note: Refreshing the browser or opening on another device does NOT cause this.', 'warning');
             appendLog('', '');
-            appendLog('   ✅  To fix this:', 'system');
-            appendLog('   1. Refresh your browser (F5 or Ctrl+R / Cmd+R)', 'system');
-            appendLog('   2. Then click "Build APK" again to retry the compilation.', 'system');
-            appendLog('   3. If the issue persists, use the "Clear Session" button in the top toolbar, then try again.', 'system');
+            appendLog('   ✅  To fix this, simply:', 'system');
+            appendLog('   1. Click "Build APK" again to retry — no need to refresh first.', 'system');
+            appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
         }
     };
     
     eventSource.onerror = function(err) {
-        console.error("EventSource encountered an error:", err);
-        appendLog("[SYSTEM] Connection interrupted. Reconnecting log stream...", "warning");
+        // EventSource auto-retries by itself — this does not mean the build stopped.
+        // Only log once to avoid spamming the terminal on transient network blips.
+        if (!window._sseErrorLogged) {
+            window._sseErrorLogged = true;
+            console.warn("EventSource: transient connection issue, browser will auto-retry.", err);
+            appendLog("[SYSTEM] Log stream had a brief network blip — reconnecting automatically...", "warning");
+        }
     };
 }
 
