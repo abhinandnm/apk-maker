@@ -1278,3 +1278,75 @@ input[type="url"]:focus {
     .aws-nav-user { display: none; }
     .aws-nav-region span { display: none; }
 }
+
+/* ==========================================
+   Notification Dropdown & Mobile Header Fixes
+   ========================================== */
+
+.notification-btn-custom {
+    margin-right: 10px;
+    padding: 6px;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 40px;
+    right: 100px;
+    width: 300px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    color: #16191f;
+    text-align: left;
+}
+
+.notification-header {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.notification-content {
+    padding: 15px;
+    font-size: 13px;
+}
+
+/* Fix Header for Mobile */
+@media (max-width: 580px) {
+    .app-header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 14px;
+        margin-bottom: 16px;
+    }
+    
+    .aws-nav-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .aws-nav-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .notification-dropdown {
+        right: 0;
+        left: auto;
+        width: calc(100vw - 40px);
+        max-width: 300px;
+        top: 45px;
+    }
+    
+    .clear-data-btn span {
+        display: none;
+    }
+    .clear-data-btn {
+        padding: 6px 10px;
+    }
+}
