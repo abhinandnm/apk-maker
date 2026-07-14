@@ -108,6 +108,48 @@ def heal_google_services(project_root, log_file):
                 log_file.write(f"[WARNING] Failed to write dummy google-services.json: {e}\n")
             log_file.flush()
 
+def heal_gradle_properties(project_root, log_file):
+    """
+    Ensures that gradle.properties is configured with optimized memory settings
+    to prevent JVM OutOfMemory errors during heavy Dex compiling.
+    """
+    props_path = os.path.join(project_root, "gradle.properties")
+    lines_to_add = [
+        "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC",
+        "org.gradle.daemon=false"
+    ]
+    
+    existing_content = ""
+    if os.path.exists(props_path):
+        try:
+            with open(props_path, "r", encoding="utf-8", errors="replace") as f:
+                existing_content = f.read()
+        except Exception:
+            pass
+            
+    needs_update = False
+    mode = "a" if os.path.exists(props_path) else "w"
+    
+    try:
+        with open(props_path, mode, encoding="utf-8") as f:
+            if mode == "w":
+                log_file.write("[SYSTEM] Creating gradle.properties with memory optimizations...\n")
+                f.write("\n".join(lines_to_add) + "\n")
+            else:
+                if "org.gradle.jvmargs" not in existing_content:
+                    f.write("\norg.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC\n")
+                    needs_update = True
+                if "org.gradle.daemon" not in existing_content:
+                    f.write("\norg.gradle.daemon=false\n")
+                    needs_update = True
+                    
+                if needs_update:
+                    log_file.write("[SYSTEM] Appended JVM memory optimization arguments to gradle.properties.\n")
+        log_file.flush()
+    except Exception as e:
+        log_file.write(f"[WARNING] Failed to heal gradle.properties: {e}\n")
+        log_file.flush()
+
 def heal_missing_sdk_components(log_content, log_file, sdk_path):
     """
     Parses build logs for missing platforms or build tools, and runs sdkmanager to install them.
@@ -336,6 +378,7 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                 
             # Run google-services check and auto-heal
             heal_google_services(project_root, log_file)
+            heal_gradle_properties(project_root, log_file)
             
             # Prepare environment
             env = os.environ.copy()
