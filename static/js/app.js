@@ -3,6 +3,7 @@ let startTime = 0;
 let eventSource = null;
 let progressVal = 0;
 let currentBuildId = null;
+window._autoReconnected = false;
 
 // Switch between Git URL and ZIP file upload
 function switchTab(type) {
@@ -398,6 +399,13 @@ function loadRecentBuilds() {
             if (builds.length === 0) {
                 listContainer.innerHTML = '<div class="no-builds-empty">No builds yet. Paste a GitHub repository to begin.</div>';
                 return;
+            }
+            
+            // Auto-reconnect to the first running build on page load if not already connected
+            const runningBuild = builds.find(b => b.status === 'running');
+            if (runningBuild && !window._autoReconnected) {
+                window._autoReconnected = true;
+                trackBuild(runningBuild.build_id, runningBuild.created_at);
             }
             
             builds.forEach(build => {
