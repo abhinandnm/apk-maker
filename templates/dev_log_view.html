@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Log | Kuttans App Builder</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f141c;
+            --nav-bg: #16191f;
+            --panel: #16191f;
+            --panel-alt: #1e252e;
+            --terminal-bg: #090d12;
+            --border: #2e353e;
+            --orange: #ec7211;
+            --blue: #1b84e3;
+            --green-light: #3fcf8e;
+            --red: #d9534f;
+            --text: #f1f3f3;
+            --text-dim: #cbd5e1;
+            --text-muted: #879596;
+            --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── AWS Top Navbar ── */
+        .aws-navbar {
+            background-color: var(--nav-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; height: 48px; flex-shrink: 0;
+        }
+        .aws-nav-left { display: flex; align-items: center; gap: 12px; }
+        .aws-logo-box {
+            width: 30px; height: 30px; background: var(--orange);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .aws-nav-service-name { font-size: 0.92rem; font-weight: 700; color: #fff; }
+        .aws-nav-divider { width: 1px; height: 20px; background: var(--border); }
+        .aws-nav-links { display: flex; gap: 4px; }
+        .aws-nav-link {
+            text-decoration: none; color: var(--text-muted);
+            font-size: 0.82rem; font-weight: 500; padding: 4px 10px; border-radius: 4px; transition: all 0.15s;
+        }
+        .aws-nav-link:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+        .aws-nav-link.active { color: #fff; background: rgba(255,255,255,0.08); }
+        .aws-nav-right { display: flex; align-items: center; gap: 16px; }
+        .aws-nav-region { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ── Page Layout ── */
+        .page-content { flex: 1; padding: 20px 24px 40px; max-width: 1300px; width: 100%; margin: 0 auto; }
+
+        /* ── Breadcrumbs ── */
+        .breadcrumbs {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;
+        }
+        .breadcrumbs a { text-decoration: none; color: var(--text-muted); transition: 0.15s; }
+        .breadcrumbs a:hover { color: var(--text); }
+
+        /* ── Service Header ── */
+        .service-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+        }
+        .service-header-text h1 {
+            font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .service-header-text p { font-size: 0.82rem; color: var(--text-muted); font-family: var(--mono); word-break: break-all; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+            padding: 3px 10px; border-radius: 3px;
+        }
+        .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+        .status-badge.success { background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2); }
+        .status-badge.success .dot { background: var(--green-light); }
+        .status-badge.failed { background: rgba(217,83,79,0.1); color: var(--red); border: 1px solid rgba(217,83,79,0.2); }
+        .status-badge.failed .dot { background: var(--red); }
+        .status-badge.running { background: rgba(27,132,227,0.1); color: #5eb3f8; border: 1px solid rgba(27,132,227,0.2); }
+        .status-badge.running .dot { background: #5eb3f8; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            font-family: var(--sans); font-size: 0.84rem; font-weight: 600;
+            padding: 7px 16px; border-radius: 4px;
+            text-decoration: none; cursor: pointer; transition: all 0.15s; border: none; outline: none;
+        }
+        .btn-secondary { background: #2e353e; border: 1.5px solid #545b64; color: #eaeded; }
+        .btn-secondary:hover { background: #3c444f; border-color: #879596; }
+
+        /* ── CloudWatch-style Terminal ── */
+        .log-container {
+            background: var(--terminal-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .log-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px;
+            background: var(--panel-alt);
+            border-bottom: 1px solid var(--border);
+        }
+        .log-toolbar-left { display: flex; align-items: center; gap: 10px; }
+        .log-toolbar-title { font-size: 0.85rem; font-weight: 700; color: #ffffff; }
+        .log-live-badge {
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 2px 8px; border-radius: 2px;
+            background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2);
+        }
+        .log-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+        .log-btn {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--text-muted); font-family: var(--sans); font-size: 0.75rem;
+            padding: 4px 12px; border-radius: 3px; cursor: pointer; transition: 0.15s;
+        }
+        .log-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+        /* Line numbers + log body */
+        .log-body {
+            display: flex;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            line-height: 1.65;
+            color: #e2e8f0;
+            overflow-x: auto;
+            min-height: 400px;
+            max-height: 72vh;
+            overflow-y: auto;
+        }
+
+        .log-line-nums {
+            min-width: 50px;
+            padding: 16px 10px 16px 16px;
+            text-align: right;
+            color: #404a56;
+            user-select: none;
+            border-right: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .log-line-num { display: block; }
+
+        .log-lines { padding: 16px 20px; flex: 1; white-space: pre-wrap; word-break: break-all; }
+        .log-line { display: block; }
+        .log-line.error { color: #f28b82; background: rgba(217,83,79,0.06); border-left: 3px solid var(--red); padding-left: 6px; margin-left: -6px; }
+        .log-line.success { color: var(--green-light); font-weight: 600; }
+        .log-line.system { color: #93c5fd; }
+        .log-line.warning { color: var(--orange); }
+
+        /* Scrollbars */
+        .log-body::-webkit-scrollbar { width: 8px; height: 8px; }
+        .log-body::-webkit-scrollbar-track { background: var(--terminal-bg); }
+        .log-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+        .log-body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+
+        /* Footer */
+        .page-footer {
+            border-top: 1px solid var(--border); padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--nav-bg);
+        }
+        .page-footer span { font-size: 0.74rem; color: var(--text-muted); }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .aws-navbar { padding: 0 12px; }
+            .aws-nav-links, .aws-nav-region { display: none; }
+            .page-content { padding: 12px 10px 28px; }
+            .service-header { flex-direction: column; }
+            .log-line-nums { min-width: 36px; padding: 12px 6px 12px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- AWS Top Navbar -->
+<nav class="aws-navbar">
+    <div class="aws-nav-left">
+        <div class="aws-logo-box">
+            <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
+        </div>
+        <span class="aws-nav-service-name">Kuttans App Builder</span>
+        <div class="aws-nav-divider"></div>
+        <nav class="aws-nav-links">
+            <a href="/" class="aws-nav-link">Build</a>
+            <a href="/dev/logs" class="aws-nav-link active">Developer Logs</a>
+        </nav>
+    </div>
+    <div class="aws-nav-right">
+        <div class="aws-nav-region">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>ap-south-1</span>
+        </div>
+    </div>
+</nav>
+
+<div class="page-content">
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Kuttans App Builder</a>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        <a href="/dev/logs">Developer Logs</a>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        <span>{{ build_id }}</span>
+    </div>
+
+    <!-- Service Header -->
+    <div class="service-header">
+        <div class="service-header-text">
+            <h1>
+                Build Log
+                {% if status.startswith('SUCCESS') %}
+                    <span class="status-badge success"><span class="dot"></span>Succeeded</span>
+                {% elif status.startswith('FAILED') %}
+                    <span class="status-badge failed"><span class="dot"></span>Failed</span>
+                {% elif status == 'RUNNING' %}
+                    <span class="status-badge running"><span class="dot"></span>Running</span>
+                {% else %}
+                    <span class="status-badge"><span class="dot"></span>{{ status }}</span>
+                {% endif %}
+            </h1>
+            <p>Build ID: {{ build_id }}</p>
+        </div>
+        <div>
+            <a href="/dev/logs" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                Back to Logs
+            </a>
+        </div>
+    </div>
+
+    <!-- CloudWatch-style Log Viewer -->
+    <div class="log-container">
+        <div class="log-toolbar">
+            <div class="log-toolbar-left">
+                <span class="log-toolbar-title">Log Output</span>
+                <span class="log-live-badge">Stored</span>
+            </div>
+            <div class="log-toolbar-actions">
+                <button class="log-btn" onclick="copyLog()">Copy All</button>
+                <button class="log-btn" onclick="scrollToBottom()">↓ End</button>
+            </div>
+        </div>
+        <div class="log-body" id="log-body">
+            <div class="log-line-nums" id="line-nums" aria-hidden="true"></div>
+            <div class="log-lines" id="log-lines"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="page-footer">
+    <span>Kuttans App Builder &mdash; Developer Tools</span>
+    <span>Region: ap-south-1</span>
+</footer>
+
+<script>
+    const rawContent = {{ content | tojson }};
+    const lines = rawContent.split('\n');
+    const lineNumsEl = document.getElementById('line-nums');
+    const logLinesEl = document.getElementById('log-lines');
+
+    lines.forEach((line, i) => {
+        // Line number
+        const numSpan = document.createElement('span');
+        numSpan.className = 'log-line-num';
+        numSpan.textContent = i + 1;
+        lineNumsEl.appendChild(numSpan);
+
+        // Log line with colour classification
+        const lineDiv = document.createElement('span');
+        lineDiv.className = 'log-line';
+        if (line.includes('BUILD FAILED') || line.includes('[ERROR]') || line.includes('Reason:')) {
+            lineDiv.classList.add('error');
+        } else if (line.includes('BUILD SUCCESSFUL') || line.includes('APK generated')) {
+            lineDiv.classList.add('success');
+        } else if (line.includes('[SYSTEM]')) {
+            lineDiv.classList.add('system');
+        } else if (line.includes('[WARNING]')) {
+            lineDiv.classList.add('warning');
+        }
+        lineDiv.textContent = line;
+        logLinesEl.appendChild(lineDiv);
+    });
+
+    function scrollToBottom() {
+        const body = document.getElementById('log-body');
+        body.scrollTop = body.scrollHeight;
+    }
+    function copyLog() {
+        navigator.clipboard.writeText(rawContent).then(() => alert('Log copied to clipboard!'));
+    }
+
+    // Auto-scroll to bottom on load
+    scrollToBottom();
+</script>
+</body>
+</html>

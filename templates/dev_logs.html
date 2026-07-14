@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Logs | Kuttans App Builder</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f141c;
+            --nav-bg: #16191f;
+            --panel: #16191f;
+            --panel-alt: #1e252e;
+            --border: #2e353e;
+            --border-light: #3d4a56;
+            --orange: #ec7211;
+            --orange-dark: #c95f0c;
+            --blue: #1b84e3;
+            --green: #1f8a70;
+            --green-light: #3fcf8e;
+            --red: #d9534f;
+            --yellow: #f0ad4e;
+            --text: #f1f3f3;
+            --text-dim: #cbd5e1;
+            --text-muted: #879596;
+            --mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── AWS Top Navbar ── */
+        .aws-navbar {
+            background-color: var(--nav-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .aws-nav-left { display: flex; align-items: center; gap: 12px; }
+
+        .aws-logo-box {
+            width: 30px; height: 30px;
+            background: var(--orange);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .aws-nav-service-name {
+            font-size: 0.92rem; font-weight: 700; color: #ffffff; white-space: nowrap;
+        }
+
+        .aws-nav-divider {
+            width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
+        }
+
+        .aws-nav-links { display: flex; gap: 4px; }
+
+        .aws-nav-link {
+            text-decoration: none; color: var(--text-muted);
+            font-size: 0.82rem; font-weight: 500;
+            padding: 4px 10px; border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .aws-nav-link:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+        .aws-nav-link.active { color: #ffffff; background: rgba(255,255,255,0.08); }
+
+        .aws-nav-right { display: flex; align-items: center; gap: 16px; }
+
+        .aws-nav-region {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; color: var(--text-muted); cursor: pointer;
+        }
+        .aws-nav-region:hover { color: var(--text); }
+
+        /* ── Page Layout ── */
+        .page-content { flex: 1; padding: 20px 24px 40px; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+        /* ── Breadcrumbs ── */
+        .breadcrumbs {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;
+        }
+        .breadcrumbs a { text-decoration: none; color: var(--text-muted); transition: 0.15s; }
+        .breadcrumbs a:hover { color: var(--text); }
+        .breadcrumbs svg { flex-shrink: 0; }
+
+        /* ── Service Header ── */
+        .service-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 20px; gap: 16px;
+        }
+        .service-header-text h1 {
+            font-size: 1.45rem; font-weight: 700; color: #ffffff; margin-bottom: 4px;
+        }
+        .service-header-text p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; }
+
+        .header-btn-group { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            font-family: var(--sans); font-size: 0.84rem; font-weight: 600;
+            padding: 7px 16px; border-radius: 4px;
+            text-decoration: none; cursor: pointer;
+            transition: all 0.15s; border: none; outline: none;
+        }
+        .btn-secondary {
+            background: #2e353e; border: 1.5px solid #545b64; color: #eaeded;
+        }
+        .btn-secondary:hover { background: #3c444f; border-color: #879596; }
+        .btn-danger {
+            background: rgba(217, 83, 79, 0.08); border: 1.5px solid rgba(217,83,79,0.25);
+            color: var(--red);
+        }
+        .btn-danger:hover { background: rgba(217,83,79,0.18); border-color: var(--red); }
+
+        /* ── Stats Row ── */
+        .stats-row {
+            display: flex; gap: 16px; margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1; background: var(--panel); border: 1px solid var(--border);
+            border-radius: 6px; padding: 14px 18px;
+        }
+        .stat-card .stat-label {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;
+        }
+        .stat-card .stat-value {
+            font-size: 1.6rem; font-weight: 700; color: #ffffff;
+        }
+        .stat-card .stat-sub {
+            font-size: 0.74rem; color: var(--text-muted); margin-top: 3px;
+        }
+
+        /* ── AWS Table ── */
+        .table-container {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .table-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .table-toolbar-left { display: flex; align-items: center; gap: 12px; }
+        .table-title {
+            font-size: 0.96rem; font-weight: 700; color: #ffffff;
+        }
+        .table-count {
+            font-size: 0.75rem; color: var(--text-muted);
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            padding: 2px 8px; border-radius: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead tr { background: var(--panel-alt); }
+
+        th {
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text-muted);
+            padding: 10px 18px;
+            border-bottom: 1px solid var(--border);
+            text-align: left; white-space: nowrap;
+        }
+
+        td {
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.86rem; color: var(--text-dim);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .col-build-id {
+            font-family: var(--mono); color: var(--orange);
+            font-size: 0.8rem; font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+        .col-build-id a {
+            text-decoration: none; color: inherit;
+        }
+        .col-build-id a:hover { text-decoration: underline; }
+
+        .col-time { color: var(--text-dim); font-size: 0.83rem; }
+
+        /* Status Pills */
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 10px; border-radius: 3px;
+            font-size: 0.73rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+        .status-pill.success {
+            background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2);
+        }
+        .status-pill.success .status-dot { background: var(--green-light); }
+
+        .status-pill.failed {
+            background: rgba(217,83,79,0.1); color: var(--red); border: 1px solid rgba(217,83,79,0.2);
+        }
+        .status-pill.failed .status-dot { background: var(--red); }
+
+        .status-pill.running {
+            background: rgba(27,132,227,0.1); color: #5eb3f8; border: 1px solid rgba(27,132,227,0.2);
+        }
+        .status-pill.running .status-dot { background: #5eb3f8; animation: pulse 1s infinite; }
+
+        .status-pill.unknown {
+            background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--border);
+        }
+        .status-pill.unknown .status-dot { background: var(--text-muted); }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* View Logs Link */
+        .view-link {
+            color: var(--orange); text-decoration: none; font-size: 0.83rem; font-weight: 600;
+        }
+        .view-link:hover { text-decoration: underline; }
+
+        /* Empty State */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 64px 24px; gap: 14px;
+        }
+        .empty-icon { opacity: 0.2; }
+        .empty-state h3 { font-size: 1rem; font-weight: 700; color: #ffffff; }
+        .empty-state p { font-size: 0.83rem; color: var(--text-muted); text-align: center; max-width: 340px; line-height: 1.5; }
+
+        /* Footer */
+        .page-footer {
+            border-top: 1px solid var(--border); padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--nav-bg);
+        }
+        .page-footer span { font-size: 0.74rem; color: var(--text-muted); }
+
+        /* Mobile */
+        @media (max-width: 700px) {
+            .aws-navbar { padding: 0 12px; }
+            .aws-nav-links, .aws-nav-region { display: none; }
+            .page-content { padding: 14px 12px 32px; }
+            .stats-row { flex-direction: column; }
+            .service-header { flex-direction: column; }
+            .table-container { overflow-x: auto; }
+            th, td { padding: 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- AWS Top Navbar -->
+<nav class="aws-navbar">
+    <div class="aws-nav-left">
+        <div class="aws-logo-box">
+            <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
+        </div>
+        <span class="aws-nav-service-name">Kuttans App Builder</span>
+        <div class="aws-nav-divider"></div>
+        <nav class="aws-nav-links">
+            <a href="/" class="aws-nav-link">Build</a>
+            <a href="/dev/logs" class="aws-nav-link active">Developer Logs</a>
+        </nav>
+    </div>
+    <div class="aws-nav-right">
+        <div class="aws-nav-region">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span>ap-south-1</span>
+        </div>
+    </div>
+</nav>
+
+<div class="page-content">
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Console Home</a>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        <a href="/">Kuttans App Builder</a>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        <span>Developer Logs</span>
+    </div>
+
+    <!-- Service Header -->
+    <div class="service-header">
+        <div class="service-header-text">
+            <h1>Developer Logs</h1>
+            <p>Detailed build pipeline logs for every APK compilation job. Use this view to debug failing builds and monitor execution history.</p>
+        </div>
+        <div class="header-btn-group">
+            <a href="/" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                Back to Console
+            </a>
+            {% if builds %}
+            <form action="/dev/logs/clear" method="POST" onsubmit="return confirm('Clear all build logs from history? This cannot be undone.');">
+                <button type="submit" class="btn btn-danger">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    Clear All Logs
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    {% if builds %}
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Builds</div>
+            <div class="stat-value">{{ builds | length }}</div>
+            <div class="stat-sub">All time in this session</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Successful</div>
+            <div class="stat-value" style="color: #3fcf8e;">{{ success_count }}</div>
+            <div class="stat-sub">Completed without errors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Failed</div>
+            <div class="stat-value" style="color: #d9534f;">{{ failed_count }}</div>
+            <div class="stat-sub">Stopped with errors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Running</div>
+            <div class="stat-value" style="color: #5eb3f8;">{{ running_count }}</div>
+            <div class="stat-sub">Currently compiling</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Table -->
+    <div class="table-container">
+        <div class="table-toolbar">
+            <div class="table-toolbar-left">
+                <span class="table-title">Build History</span>
+                {% if builds %}
+                <span class="table-count">{{ builds | length }} records</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if builds %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Build ID</th>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for build in builds %}
+                <tr>
+                    <td class="col-build-id">
+                        <a href="/dev/logs/{{ build.build_id }}">{{ build.build_id }}</a>
+                    </td>
+                    <td class="col-time">{{ build.modified_at }}</td>
+                    <td>
+                        {% if build.status.startswith('SUCCESS') %}
+                            <span class="status-pill success"><span class="status-dot"></span>Succeeded</span>
+                        {% elif build.status.startswith('FAILED') %}
+                            <span class="status-pill failed"><span class="status-dot"></span>Failed</span>
+                        {% elif build.status == 'RUNNING' %}
+                            <span class="status-pill running"><span class="status-dot"></span>Running</span>
+                        {% else %}
+                            <span class="status-pill unknown"><span class="status-dot"></span>{{ build.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/dev/logs/{{ build.build_id }}" class="view-link">View output →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <svg class="empty-icon" viewBox="0 0 24 24" width="64" height="64" fill="#879596">
+                <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
+            </svg>
+            <h3>No build logs found</h3>
+            <p>Build logs will appear here when you compile a project on the Build console. Start a new build to generate records.</p>
+            <a href="/" class="btn btn-secondary" style="margin-top:8px;">Go to Build Console</a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="page-footer">
+    <span>Kuttans App Builder &mdash; Developer Tools</span>
+    <span>Region: ap-south-1</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuttans App Builder | Console</title>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="app-container">
+        <!-- AWS Console Navbar -->
+        <header class="app-header">
+            <!-- Left: Logo + Service Name -->
+            <div class="aws-nav-left">
+                <div class="aws-logo-box">
+                    <img src="{{ url_for('static', filename='img/kuttans_logo.png') }}" alt="Kuttans Logo" width="30" height="30" style="border-radius:4px; display:block;">
+                </div>
+                <span class="aws-nav-service-name">Kuttans App Builder</span>
+                <div class="aws-nav-divider"></div>
+                <nav class="aws-nav-links">
+                    <a href="/" class="aws-nav-link active">Build</a>
+                    <a href="/dev/logs" class="aws-nav-link">Developer Logs</a>
+                </nav>
+            </div>
+            <!-- Right: Actions -->
+            <div class="aws-nav-right">
+                <button type="button" onclick="confirmClearAllData()" class="aws-nav-action-btn">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                    Clear Data
+                </button>
+            </div>
+        </header>
+
+        <!-- AWS Console Breadcrumbs -->
+        <div class="aws-breadcrumbs">
+            <a href="/">Console Home</a>
+            <svg viewBox="0 0 24 24" width="12" height="12"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#879596"/></svg>
+            <a href="/dev/logs">Developer Tools</a>
+            <svg viewBox="0 0 24 24" width="12" height="12"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#879596"/></svg>
+            <a href="/">Kuttans App Builder</a>
+            <svg viewBox="0 0 24 24" width="12" height="12"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#879596"/></svg>
+            <span class="active">Build Android Project</span>
+        </div>
+
+        <!-- AWS Service Title -->
+        <div class="aws-service-title">
+            <h1>Build Android Project</h1>
+            <p>Compile Android source code repositories or ZIP archives directly into debug APKs using an automated cloud pipeline.</p>
+        </div>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Configuration & Actions -->
+            <section class="panel config-panel">
+                <div class="panel-header">
+                    <h2>Configure Build</h2>
+                    <span class="step-num">Step 1</span>
+                </div>
+                
+                <!-- Source Selection Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" id="tab-git" onclick="switchTab('git')">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                        Git Repository
+                    </button>
+                    <button class="tab-btn" id="tab-zip" onclick="switchTab('zip')">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 6h-2v2h2v-2zm0-4h-2v2h2V8zm4 8h-6v-2h2v-2h-2v-2h6v6z"/></svg>
+                        ZIP Archive
+                    </button>
+                </div>
+
+                <!-- Build Form -->
+                <form id="build-form" onsubmit="submitBuild(event)">
+                    <input type="hidden" name="type" id="input-type" value="git">
+
+                    <!-- Git Section -->
+                    <div id="git-section" class="form-section active">
+                        <label for="git_url">Git Repository URL</label>
+                        <div class="input-wrapper">
+                            <input type="url" name="git_url" id="git_url" placeholder="https://github.com/username/project.git" required>
+                            <span class="input-focus-border"></span>
+                        </div>
+                        <p class="input-tip">Ensure your repository is public and includes a settings.gradle file.</p>
+                    </div>
+
+                    <!-- ZIP Section -->
+                    <div id="zip-section" class="form-section">
+                        <label>Upload Android Project ZIP</label>
+                        <div class="upload-dropzone" onclick="document.getElementById('zip_file').click()">
+                            <svg viewBox="0 0 24 24" width="40" height="40">
+                                <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                            </svg>
+                            <span id="upload-label">Drag & drop your ZIP file, or click to browse</span>
+                            <span id="file-info" class="file-info"></span>
+                            <input type="file" name="zip_file" id="zip_file" accept=".zip" style="display: none;" onchange="handleFileSelected(this)">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <span>Build APK</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <!-- Status Tracker Panel -->
+                <div class="status-tracker" id="tracker-panel" style="display: none;">
+                    <div class="tracker-header">
+                        <span id="status-title">Status: Starting...</span>
+                        <span id="status-percentage" class="percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <div class="tracker-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Task</span>
+                            <span class="meta-value" id="current-task">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Time Elapsed</span>
+                            <span class="meta-value" id="timer">0.0s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Box -->
+                <div class="success-box" id="success-box" style="display: none;">
+                    <div class="success-header">
+                        <div class="success-icon">
+                            <svg viewBox="0 0 24 24" width="30" height="30">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <h3>Build Successful</h3>
+                    </div>
+                    <div class="apk-details">
+                        <div class="detail-row">
+                            <span>Original Name:</span>
+                            <strong id="meta-original-name">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>File Name:</span>
+                            <strong id="meta-filename">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>File Size:</span>
+                            <strong id="meta-size">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Build Duration:</span>
+                            <strong id="meta-duration">-</strong>
+                        </div>
+                    </div>
+                    
+                    <a href="#" id="download-btn" class="btn btn-success" download>
+                        Download APK
+                    </a>
+                    
+                    <div class="expiration-notice">
+                        <svg viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M11 9h2v2h-2zm0 4h2v6h-2zm1-11C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                        </svg>
+                        <p>Your APK has been generated successfully. It will remain available for download for the next 5 hours. After that, it will be automatically deleted from the server.</p>
+                    </div>
+                </div>
+
+                <!-- Recent Builds Panel -->
+                <div class="recent-builds-container" id="recent-builds-panel">
+                    <div class="recent-header">
+                        <h3>Recent Builds</h3>
+                        <button type="button" onclick="loadRecentBuilds()" class="refresh-builds-btn" title="Refresh List">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--color-cyan)">
+                                <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="recent-builds-list" class="recent-builds-list">
+                        <div class="no-builds-msg">Loading history...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Real-time Terminal Log -->
+            <section class="panel terminal-panel">
+                <div class="panel-header">
+                    <div class="terminal-title">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="title-text">Live Compilation Log</span>
+                    </div>
+                    <button class="clear-btn" onclick="clearTerminal()">Clear</button>
+                </div>
+                <div class="terminal-body" id="terminal">
+                    <div class="terminal-line system">Waiting for configuration inputs... Ready to build.</div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Custom Script File -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

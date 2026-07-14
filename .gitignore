@@ -1,0 +1,33 @@
+# Virtual Environment
+venv/
+.venv/
+ENV/
+
+# Temporary and Build files
+temp/
+*.tmp
+*.bak
+.gradle/
+build/
+app/build/
+local.properties
+
+# Uploads, Logs, and APK storage
+uploads/*
+apks/*
+logs/*
+
+# Keep directories but empty
+!uploads/.gitkeep
+!apks/.gitkeep
+!logs/.gitkeep
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
