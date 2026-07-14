@@ -533,3 +533,51 @@ def cancel_build_route(build_id):
         active_processes.pop(build_id, None)
         return jsonify({"status": "success", "message": "Build terminated successfully."})
     return jsonify({"status": "error", "message": "Build not running or not found."}), 404
+
+@main_bp.route('/clear-session', methods=['POST'])
+def clear_session_route():
+    """
+    Wipes all stale upload, temp, and log files from the server
+    so the user can start fresh without a server restart.
+    Running builds are NOT terminated; only idle/orphaned files are removed.
+    """
+    import shutil
+    removed = []
+    errors = []
+
+    def _wipe_dir_contents(dir_path, label):
+        if not os.path.exists(dir_path):
+            return
+        for entry in os.listdir(dir_path):
+            full = os.path.join(dir_path, entry)
+            try:
+                if os.path.isdir(full):
+                    shutil.rmtree(full)
+                else:
+                    os.remove(full)
+                removed.append(f"{label}/{entry}")
+            except Exception as e:
+                errors.append(f"{label}/{entry}: {e}")
+
+    # Remove stale uploads and temp extraction directories
+    _wipe_dir_contents(get_uploads_dir(), "uploads")
+    _wipe_dir_contents(get_temp_dir(), "temp")
+
+    # Remove orphaned log and status files (*.log, *.status) but leave the folder
+    logs_dir = get_logs_dir()
+    if os.path.exists(logs_dir):
+        for fname in os.listdir(logs_dir):
+            if fname.endswith(('.log', '.status')):
+                full = os.path.join(logs_dir, fname)
+                try:
+                    os.remove(full)
+                    removed.append(f"logs/{fname}")
+                except Exception as e:
+                    errors.append(f"logs/{fname}: {e}")
+
+    logger.info(f"Clear session: removed {len(removed)} items, {len(errors)} errors.")
+    return jsonify({
+        "status": "success",
+        "removed": len(removed),
+        "errors": errors
+    })

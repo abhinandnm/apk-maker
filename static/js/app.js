@@ -356,7 +356,7 @@ function connectLogStream(buildId, createdAt) {
             appendLog('   ✅  To fix this:', 'system');
             appendLog('   1. Refresh your browser (F5 or Ctrl+R / Cmd+R)', 'system');
             appendLog('   2. Then click "Build APK" again to retry the compilation.', 'system');
-            appendLog('   3. If the issue persists, click "Clear Session" in the top navigation bar first.', 'system');
+            appendLog('   3. If the issue persists, use the "Clear Session" button in the top toolbar, then try again.', 'system');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
         }
     };
@@ -763,4 +763,49 @@ function setSmileyExpression(state) {
     if (state) {
         el.classList.add(state);
     }
+}
+
+// Clear Session — wipes stale uploads, temp files, and orphaned logs on the server
+function confirmClearAllData() {
+    const confirmed = window.confirm(
+        "Clear Session?\n\n" +
+        "This will delete all stale upload files, temporary extraction folders, " +
+        "and orphaned log files from the server.\n\n" +
+        "Any currently running builds will NOT be cancelled.\n\n" +
+        "The page will refresh automatically when complete."
+    );
+    if (!confirmed) return;
+
+    const btn = document.querySelector('.clear-data-action');
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.querySelector('span').innerText = 'Clearing...';
+    }
+
+    fetch('/clear-session', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log(`[Clear Session] Removed ${data.removed} item(s).`);
+                // Brief pause so the user sees the button change, then reload
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                alert('Clear session failed. Please try again.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.querySelector('span').innerText = 'Clear Session';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('[Clear Session] Error:', err);
+            alert('Clear session failed. Check your connection and try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.querySelector('span').innerText = 'Clear Session';
+            }
+        });
 }
