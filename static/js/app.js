@@ -222,11 +222,11 @@ function checkBuildStatus(buildId) {
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
                     appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
                     appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
-                    appendLog('   Note: Refreshing the browser or opening on another device does NOT cause this.', 'warning');
                     appendLog('', '');
                     appendLog('   ✅  To fix this, simply:', 'system');
-                    appendLog('   1. Click "Build APK" again to retry — the build was not caused by your browser.', 'system');
+                    appendLog('   1. Click "Build APK" again to retry.', 'system');
                     appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
+                    appendLog('   3. Ennitum work aille maama enik message itta mathi 😄', 'system');
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
                 }
                 
@@ -370,11 +370,11 @@ function connectLogStream(buildId, createdAt) {
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
             appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
             appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
-            appendLog('   Note: Refreshing the browser or opening on another device does NOT cause this.', 'warning');
             appendLog('', '');
             appendLog('   ✅  To fix this, simply:', 'system');
-            appendLog('   1. Click "Build APK" again to retry — no need to refresh first.', 'system');
+            appendLog('   1. Click "Build APK" again to retry.', 'system');
             appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
+            appendLog('   3. Ennitum work aille maama enik message itta mathi 😄', 'system');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
         }
     };
