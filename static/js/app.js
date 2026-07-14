@@ -592,47 +592,51 @@ function playChime(isSuccess) {
         const now = audioCtx.currentTime;
         
         if (isSuccess) {
-            // Success: Clean, high-pitched dual tone (C5 to G5)
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            // Android Success Style: Soft rising arpeggio (C5 -> E5 -> G5 -> C6)
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            const delays = [0, 0.07, 0.14, 0.21];
             
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(523.25, now); // C5
-            osc1.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
-            
-            osc2.type = 'triangle';
-            osc2.frequency.setValueAtTime(659.25, now); // E5
-            osc2.frequency.exponentialRampToValueAtTime(987.77, now + 0.15); // B5
-            
-            gainNode.gain.setValueAtTime(0.15, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-            
-            osc1.connect(gainNode);
-            osc2.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc1.start(now);
-            osc2.start(now);
-            osc1.stop(now + 0.6);
-            osc2.stop(now + 0.6);
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + delays[index]);
+                
+                // Soft attack and decay envelope
+                gainNode.gain.setValueAtTime(0, now + delays[index]);
+                gainNode.gain.linearRampToValueAtTime(0.12, now + delays[index] + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + delays[index] + 0.35);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start(now + delays[index]);
+                osc.stop(now + delays[index] + 0.4);
+            });
         } else {
-            // Failure: Low, slightly warning dissonant saw tone
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            // Android Failure Style: Soft double descending warning tone (F#4 -> D4)
+            const notes = [369.99, 293.66];
+            const delays = [0, 0.12];
             
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(185.00, now); // F#3
-            osc.frequency.linearRampToValueAtTime(146.83, now + 0.3); // D3
-            
-            gainNode.gain.setValueAtTime(0.15, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc.start(now);
-            osc.stop(now + 0.5);
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = index === 0 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, now + delays[index]);
+                
+                // Soft attack and decay envelope
+                gainNode.gain.setValueAtTime(0, now + delays[index]);
+                gainNode.gain.linearRampToValueAtTime(0.15, now + delays[index] + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + delays[index] + 0.35);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start(now + delays[index]);
+                osc.stop(now + delays[index] + 0.4);
+            });
         }
     } catch (e) {
         console.error("Audio Context playback failed:", e);

@@ -1253,18 +1253,18 @@ input[type="url"] {
 
 .node-git {
     animation: orbitGit 10s infinite ease-in-out;
-    transform-origin: 40px 60px;
+    transform-origin: 0 0;
 }
 
 .node-cloud {
     animation: orbitCloud 10s infinite ease-in-out;
-    transform-origin: 160px 60px;
+    transform-origin: 0 0;
 }
 
 /* Smiley face expressions display states */
 .node-smiley {
     transform: translate(100px, 60px) scale(1.1);
-    transform-origin: 100px 60px;
+    transform-origin: 0 0;
     transition: all 0.3s ease;
 }
 
