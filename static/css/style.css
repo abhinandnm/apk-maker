@@ -1070,7 +1070,18 @@ input[type="url"] {
         padding: 0 16px;
     }
     
-    .nav-text-btn, .clear-data-action {
+    .nav-text-btn {
+        display: none;
+    }
+    
+    /* Show Clear Session on mobile as icon-only (no text label) */
+    .clear-data-action {
+        display: inline-flex;
+        padding: 6px 8px;
+        min-width: unset;
+    }
+    
+    .clear-data-action span {
         display: none;
     }
 }
@@ -1333,7 +1344,11 @@ html, body {
         padding: 0 10px;
     }
     .bar-right {
-        gap: 6px;
+        gap: 4px;
+    }
+    
+    .clear-data-action {
+        padding: 5px 6px;
     }
     .product-title {
         font-size: 1.1rem;
