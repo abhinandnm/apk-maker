@@ -56,7 +56,7 @@ def stream_logs(build_id):
                     if status == "RUNNING":
                         from routes.main import active_threads
                         if build_id not in active_threads:
-                            status = "FAILED: Build pipeline was interrupted."
+                            status = "FAILED: Build failed."
                             from routes.main import write_status
                             write_status(build_id, status)
                     
@@ -71,7 +71,8 @@ def stream_logs(build_id):
                         break
                         
                     # Yield empty heartbeat or just sleep
-                    time.sleep(0.3)
+                    yield ":\n\n"
+                    time.sleep(0.5)
                     
         # Signal connection close
         yield "data: [SYSTEM] EOF\n\n"
