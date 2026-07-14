@@ -3,223 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuttans App Builder | Console</title>
+    <title>APK Builder | Console</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-</head>
 <body>
-    <div class="glow-bg">
-        <div class="glow-blob blob-orange"></div>
-        <div class="glow-blob blob-blue"></div>
-        <div class="glow-blob blob-purple"></div>
-    </div>
-    <div class="app-container">
-        <!-- AWS Console Navbar -->
-        <header class="app-header">
-            <!-- Left: Logo + Service Name -->
-            <div class="aws-nav-left">
-                <div class="aws-logo-box">
-                    <img src="{{ url_for('static', filename='img/kuttans_logo.png') }}" alt="Kuttans Logo" width="30" height="30" style="border-radius:4px; display:block;">
-                </div>
-                <span class="aws-nav-service-name">Kuttans App Builder</span>
+    <!-- Top Google App Bar -->
+    <header class="google-app-bar">
+        <div class="bar-left">
+            <div class="product-logo">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#34A853">
+                    <path d="M7 11c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm10 0c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm-9.3-3.8l-.8-.8c-.3-.3-.3-.8 0-1.1s.8-.3 1.1 0l1 1c1-.4 2.1-.6 3.2-.6s2.2.2 3.2.6l1-1c.3-.3.8-.3 1.1 0s.3.8 0 1.1l-.8.8C16.5 7.8 18 9.7 18 12H6c0-2.3 1.5-4.2 3.7-4.8zM6 13h12v3c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-3z"/>
+                </svg>
             </div>
-            <!-- Right: Actions -->
-            <div class="aws-nav-right" style="position: relative;">
-                <a href="/" class="header-nav-btn active">Console Home</a>
-                <a href="/dev/logs" class="header-nav-btn">Developer Tools</a>
-                
-                <!-- Notification Bell -->
-                <button type="button" class="aws-nav-action-btn notification-btn-custom" id="notification-btn" onclick="toggleNotifications()">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
-                    </svg>
-                </button>
-                
-                <!-- Notification Dropdown -->
-                <div id="notification-dropdown" class="notification-dropdown" style="display: none;">
-                    <div class="notification-header">
-                        System Update History
-                    </div>
-                    <div id="notification-content" class="notification-content">
-                        <div class="spinner" style="display:block; margin: 0 auto; width:16px; height:16px; border-width: 2px; border-top-color: var(--color-blue);"></div>
-                    </div>
-                </div>
-
-                <button type="button" onclick="confirmClearAllData()" class="aws-nav-action-btn clear-data-btn">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                    <span>Clear Data</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- AWS Service Title -->
-        <div class="aws-service-title" style="margin-top: 10px;">
-            <p>Compile Android source code repositories or ZIP archives directly into debug APKs using an automated cloud pipeline.</p>
+            <span class="product-title">APK Builder</span>
+            <span class="beta-badge">BETA</span>
         </div>
-
-        <!-- Mobile Layout Selector -->
-        <div class="mobile-layout-tabs">
-            <button class="mobile-tab-btn active" id="m-btn-console" onclick="switchMobileTab('console')">Build Console</button>
-            <button class="mobile-tab-btn" id="m-btn-logs" onclick="switchMobileTab('logs')">Live Compilation Logs</button>
-        </div>
-
-        <!-- Main Dashboard -->
-        <main class="dashboard-grid mobile-view-console" id="dashboard-view">
+        <div class="bar-right">
+            <!-- Notifications Bell -->
+            <button type="button" class="icon-btn" id="notification-btn" onclick="toggleNotifications()" title="System Update History">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                </svg>
+            </button>
             
-            <!-- Left Panel: Configuration & Actions -->
-            <section class="panel config-panel">
-                <div class="panel-header">
-                    <h2>Configure Build</h2>
-                    <span class="step-num">Step 1</span>
+            <!-- Notification Dropdown -->
+            <div id="notification-dropdown" class="notification-dropdown-google" style="display: none;">
+                <div class="dropdown-header">
+                    System Update History
                 </div>
+                <div id="notification-content" class="dropdown-content">
+                    <div class="spinner" style="display:block; margin: 0 auto; width:16px; height:16px; border-width: 2px; border-top-color: #1A73E8;"></div>
+                </div>
+            </div>
+
+            <!-- Help Icon -->
+            <button type="button" class="icon-btn" title="Help Documentation" onclick="window.open('/docs', '_blank')">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                </svg>
+            </button>
+
+            <!-- User Avatar -->
+            <div class="user-avatar" title="User Profile">
+                <span class="avatar-letter">A</span>
+            </div>
+
+            <!-- Dev Logs Link -->
+            <a href="/dev/logs" class="nav-text-btn">Developer Tools</a>
+
+            <!-- Clear Data Action -->
+            <button type="button" onclick="confirmClearAllData()" class="clear-data-action" title="Clear Server Session">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                <span>Clear Session</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-left">
+                <h1>Build Android APKs in the Cloud</h1>
+                <p>Compile Android Studio projects directly from Git repositories or ZIP archives using isolated cloud build workers.</p>
+            </div>
+            <div class="hero-right">
+                <div class="hero-illustration">
+                    <svg viewBox="0 0 200 120" width="100%" height="100%">
+                        <circle cx="100" cy="60" r="45" fill="#1A73E8" opacity="0.05"/>
+                        <!-- Connected pipe line -->
+                        <path d="M 40 60 L 160 60" stroke="#E8EAED" stroke-width="2" stroke-dasharray="5 5"/>
+                        <!-- Git circle -->
+                        <g transform="translate(40, 60)">
+                            <circle cx="0" cy="0" r="18" fill="#FFFFFF" stroke="#E8EAED" stroke-width="1.5" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));"/>
+                            <path d="M-5 -2 C -5 -5, 5 -5, 5 -2 C 5 2, -5 2, -5 -2" stroke="#5F6368" stroke-width="2" fill="none"/>
+                            <circle cx="0" cy="3" r="2" fill="#5F6368"/>
+                        </g>
+                        <!-- Android icon -->
+                        <g transform="translate(100, 60) scale(1.1)">
+                            <circle cx="0" cy="0" r="22" fill="#E6F4EA" stroke="#34A853" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(52,168,83,0.15));"/>
+                            <path d="M-8 -6c.3 0 .5-.2.5-.5V-9c0-.3-.2-.5-.5-.5s-.5.2-.5.5v2.5c0 .3.2.5.5.5zm16 0c.3 0 .5-.2.5-.5V-9c0-.3-.2-.5-.5-.5s-.5.2-.5.5v2.5c0 .3.2.5.5.5z M-7.5-2.8l-.6-.6c-.2-.2-.2-.6 0-.8s.6-.2.8 0l.8.8c.2.2.2.6 0 .8s-.6.2-.8 0z" fill="#34A853"/>
+                            <path d="M-10 2h20v4H-10z" fill="#34A853"/>
+                        </g>
+                        <!-- Cloud/Server circle -->
+                        <g transform="translate(160, 60)">
+                            <circle cx="0" cy="0" r="18" fill="#FFFFFF" stroke="#E8EAED" stroke-width="1.5" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));"/>
+                            <rect x="-6" y="-6" width="12" height="12" rx="2" fill="none" stroke="#1A73E8" stroke-width="2"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Segmented Tab Bar Selector (Mobile Layout Selector) -->
+        <div class="segmented-tabs-container">
+            <div class="segmented-tabs">
+                <button class="tab-btn-google active" id="m-btn-console" onclick="switchMobileTab('console')">Build Console</button>
+                <button class="tab-btn-google" id="m-btn-logs" onclick="switchMobileTab('logs')">Live Logs</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Workspace -->
+        <main class="dashboard-workspace mobile-view-console" id="dashboard-view">
+            
+            <!-- Left Side: Config Card + Status + History -->
+            <div class="workspace-column config-column">
                 
-                <!-- Source Selection Tabs -->
-                <div class="tabs">
-                    <button class="tab-btn active" id="tab-git" onclick="switchTab('git')">
-                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-                        Git Repository
-                    </button>
-                    <button class="tab-btn" id="tab-zip" onclick="switchTab('zip')">
-                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 6h-2v2h2v-2zm0-4h-2v2h2V8zm4 8h-6v-2h2v-2h-2v-2h6v6z"/></svg>
-                        ZIP Archive
-                    </button>
+                <!-- Configure Build Card -->
+                <div class="google-card">
+                    <div class="card-header">
+                        <h2>Configure Build</h2>
+                        <span class="step-badge">STEP 1 OF 2</span>
+                    </div>
+
+                    <!-- Material Segmented Button Group -->
+                    <div class="material-segmented-group">
+                        <button type="button" class="segmented-item active" id="tab-git" onclick="switchTab('git')">
+                            Git Repository
+                        </button>
+                        <button type="button" class="segmented-item" id="tab-zip" onclick="switchTab('zip')">
+                            ZIP Archive
+                        </button>
+                    </div>
+
+                    <!-- Input Forms -->
+                    <form id="build-form" onsubmit="submitBuild(event)">
+                        <input type="hidden" name="type" id="input-type" value="git">
+
+                        <!-- Git Repository URL -->
+                        <div id="git-section" class="form-section active">
+                            <label for="git_url">Git Repository URL</label>
+                            <div class="material-input-wrapper">
+                                <span class="input-icon-left">
+                                    <!-- GitHub Icon -->
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="#5F6368">
+                                        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                                    </svg>
+                                </span>
+                                <input type="url" name="git_url" id="git_url" placeholder="https://github.com/username/project.git" required>
+                                <span class="input-underline"></span>
+                            </div>
+                            <p class="input-helper-text">Repository must be public and contain an Android Gradle project.</p>
+                        </div>
+
+                        <!-- ZIP File Upload -->
+                        <div id="zip-section" class="form-section">
+                            <label>Upload Project ZIP</label>
+                            <div class="google-upload-zone" onclick="document.getElementById('zip_file').click()">
+                                <svg viewBox="0 0 24 24" width="36" height="36" fill="#1A73E8">
+                                    <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                                </svg>
+                                <span id="upload-label">Drag & drop your ZIP file, or click to browse</span>
+                                <span id="file-info" class="file-metadata"></span>
+                                <input type="file" name="zip_file" id="zip_file" accept=".zip" style="display: none;" onchange="handleFileSelected(this)">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="google-btn-primary">
+                            <span>Build APK</span>
+                            <div class="spinner-white" style="display: none;"></div>
+                        </button>
+                    </form>
+
+                    <div class="card-security-footer">
+                        <span>🔒 Builds run inside isolated containers. Files are automatically deleted after 5 hours.</span>
+                    </div>
                 </div>
 
-                <!-- Build Form -->
-                <form id="build-form" onsubmit="submitBuild(event)">
-                    <input type="hidden" name="type" id="input-type" value="git">
-
-                    <!-- Git Section -->
-                    <div id="git-section" class="form-section active">
-                        <label for="git_url">Git Repository URL</label>
-                        <div class="input-wrapper">
-                            <input type="url" name="git_url" id="git_url" placeholder="https://github.com/username/project.git" required>
-                            <span class="input-focus-border"></span>
-                        </div>
-                        <p class="input-tip">Ensure your repository is public and includes a settings.gradle file.</p>
-                    </div>
-
-                    <!-- ZIP Section -->
-                    <div id="zip-section" class="form-section">
-                        <label>Upload Android Project ZIP</label>
-                        <div class="upload-dropzone" onclick="document.getElementById('zip_file').click()">
-                            <svg viewBox="0 0 24 24" width="40" height="40">
-                                <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
-                            </svg>
-                            <span id="upload-label">Drag & drop your ZIP file, or click to browse</span>
-                            <span id="file-info" class="file-info"></span>
-                            <input type="file" name="zip_file" id="zip_file" accept=".zip" style="display: none;" onchange="handleFileSelected(this)">
-                        </div>
-                    </div>
-
-                    <button type="submit" id="submit-btn" class="btn btn-primary">
-                        <span>Build APK</span>
-                        <div class="spinner" style="display: none;"></div>
-                    </button>
-                </form>
-
-                <!-- Status Tracker Panel -->
-                <div class="status-tracker" id="tracker-panel" style="display: none;">
-                    <div class="tracker-header">
+                <!-- Active Build Progress Card -->
+                <div class="google-card tracker-card" id="tracker-panel" style="display: none;">
+                    <div class="tracker-header-row">
                         <span id="status-title">Status: Starting...</span>
-                        <span id="status-percentage" class="percentage">0%</span>
+                        <span id="status-percentage" class="percentage-pill">0%</span>
                     </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="progress-bar"></div>
+                    <div class="google-progress-container">
+                        <div class="google-progress-bar" id="progress-bar"></div>
                     </div>
-                    <div class="tracker-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Task</span>
+                    <div class="tracker-meta-grid">
+                        <div class="meta-column">
+                            <span class="meta-label">CURRENT TASK</span>
                             <span class="meta-value" id="current-task">-</span>
                         </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Time Elapsed</span>
+                        <div class="meta-column">
+                            <span class="meta-label">ELAPSED TIME</span>
                             <span class="meta-value" id="timer">0.0s</span>
                         </div>
                     </div>
-                    <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
-                        <button type="button" id="cancel-build-btn" class="btn-cancel-tracker" style="display: none;">Cancel Build</button>
+                    <div class="tracker-actions">
+                        <button type="button" id="cancel-build-btn" class="google-btn-text-danger" style="display: none;">Cancel Build</button>
                     </div>
                 </div>
 
-                <!-- Success Box -->
-                <div class="success-box" id="success-box" style="display: none;">
-                    <div class="success-header">
-                        <div class="success-icon">
-                            <svg viewBox="0 0 24 24" width="30" height="30">
+                <!-- Build Success Details Card -->
+                <div class="google-card success-card" id="success-box" style="display: none;">
+                    <div class="success-header-row">
+                        <div class="success-badge-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="#34A853">
                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                             </svg>
                         </div>
                         <h3>Build Successful</h3>
                     </div>
-                    <div class="apk-details">
-                        <div class="detail-row">
-                            <span>Original Name:</span>
-                            <strong id="meta-original-name">-</strong>
+                    
+                    <div class="apk-metadata-list">
+                        <div class="metadata-row">
+                            <span class="row-label">Original Name</span>
+                            <span class="row-value" id="meta-original-name">-</span>
                         </div>
-                        <div class="detail-row">
-                            <span>File Name:</span>
-                            <strong id="meta-filename">-</strong>
+                        <div class="metadata-row">
+                            <span class="row-label">File Name</span>
+                            <span class="row-value" id="meta-filename">-</span>
                         </div>
-                        <div class="detail-row">
-                            <span>File Size:</span>
-                            <strong id="meta-size">-</strong>
+                        <div class="metadata-row">
+                            <span class="row-label">File Size</span>
+                            <span class="row-value" id="meta-size">-</span>
                         </div>
-                        <div class="detail-row">
-                            <span>Build Duration:</span>
-                            <strong id="meta-duration">-</strong>
+                        <div class="metadata-row">
+                            <span class="row-label">Build Duration</span>
+                            <span class="row-value" id="meta-duration">-</span>
                         </div>
                     </div>
-                    
-                    <a href="#" id="download-btn" class="btn btn-success" download>
+
+                    <a href="#" id="download-btn" class="google-btn-success" download>
                         Download APK
                     </a>
-                    
-                    <div class="expiration-notice">
-                        <svg viewBox="0 0 24 24" width="18" height="18">
-                            <path d="M11 9h2v2h-2zm0 4h2v6h-2zm1-11C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+
+                    <div class="retention-warning">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="#5f6368">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
                         </svg>
-                        <p>Your APK has been generated successfully. It will remain available for download for the next 5 hours. After that, it will be automatically deleted from the server.</p>
+                        <span>Your APK is ready and will remain hosted for 5 hours before automatic deletion.</span>
                     </div>
                 </div>
 
                 <!-- Recent Builds Panel -->
-                <div class="recent-builds-container" id="recent-builds-panel">
-                    <div class="recent-header">
+                <div class="google-card recent-builds-card" id="recent-builds-panel">
+                    <div class="recent-card-header">
                         <h3>Recent Builds</h3>
-                        <button type="button" onclick="loadRecentBuilds()" class="refresh-builds-btn" title="Refresh List">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--color-cyan)">
+                        <button type="button" onclick="loadRecentBuilds()" class="google-refresh-btn" title="Refresh List">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                             </svg>
                         </button>
                     </div>
-                    <div id="recent-builds-list" class="recent-builds-list">
-                        <div class="no-builds-msg">Loading history...</div>
+                    <div id="recent-builds-list" class="recent-list-container">
+                        <div class="no-builds-empty">Loading history...</div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Right Panel: Real-time Terminal Log -->
-            <section class="panel terminal-panel">
-                <div class="panel-header">
-                    <div class="terminal-title">
-                        <span class="terminal-dot red"></span>
-                        <span class="terminal-dot yellow"></span>
-                        <span class="terminal-dot green"></span>
-                        <span class="title-text">Live Compilation Log</span>
+            <!-- Right Side: Terminal Console logs -->
+            <div class="workspace-column logs-column">
+                <div class="google-card logs-card">
+                    <div class="logs-header">
+                        <div class="logs-header-title">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="#E8EAED">
+                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 12H4v-2h8v2zm8-4H4V8h16v4z"/>
+                            </svg>
+                            <span>Live Compilation Logs</span>
+                        </div>
+                        <div class="logs-action-row">
+                            <button type="button" class="log-action-btn" onclick="copyLogs()" title="Copy entire log to Clipboard">Copy Logs</button>
+                            <button type="button" class="log-action-btn" onclick="downloadLogs()" title="Download raw log text file">Download Logs</button>
+                            <button type="button" class="log-action-btn danger" onclick="clearTerminal()">Clear</button>
+                        </div>
                     </div>
-                    <button class="clear-btn" onclick="clearTerminal()">Clear</button>
+                    <div class="terminal-body" id="terminal">
+                        <div class="terminal-line system">Waiting for configuration inputs... Ready to build.</div>
+                    </div>
                 </div>
-                <div class="terminal-body" id="terminal">
-                    <div class="terminal-line system">Waiting for configuration inputs... Ready to build.</div>
-                </div>
-            </section>
+            </div>
         </main>
+
+        <!-- Premium Footer -->
+        <footer class="google-footer">
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Documentation</a>
+                <a href="https://github.com/abhinandnm/apk-maker" target="_blank">GitHub</a>
+                <a href="#" class="status-indicator-link">
+                    <span class="status-dot"></span>
+                    <span>Systems Operational</span>
+                </a>
+            </div>
+        </footer>
     </div>
-    
+
     <!-- Custom Script File -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

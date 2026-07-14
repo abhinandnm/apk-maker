@@ -231,19 +231,20 @@ function checkBuildStatus(buildId) {
 
 function enableSubmitButton(enabled) {
     const btn = document.getElementById('submit-btn');
-    const spinner = btn.querySelector('.spinner');
+    if (!btn) return;
+    const spinner = btn.querySelector('.spinner, .spinner-white');
     const btnText = btn.querySelector('span');
     const cancelBtn = document.getElementById('cancel-build-btn');
     
     if (enabled) {
         btn.removeAttribute('disabled');
-        spinner.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
         btnText.innerText = "Build APK";
         if (cancelBtn) cancelBtn.style.display = 'none';
     } else {
         btn.setAttribute('disabled', 'disabled');
-        spinner.style.display = 'block';
-        btnText.innerText = "Compiling...";
+        if (spinner) spinner.style.display = 'block';
+        btnText.innerText = "Building...";
         if (cancelBtn && currentBuildId) cancelBtn.style.display = 'inline-flex';
     }
 }
@@ -390,13 +391,13 @@ function loadRecentBuilds() {
             listContainer.innerHTML = '';
             
             if (builds.length === 0) {
-                listContainer.innerHTML = '<div class="no-builds-msg">No active builds. Compiled APKs will appear here.</div>';
+                listContainer.innerHTML = '<div class="no-builds-empty">No builds yet. Paste a GitHub repository to begin.</div>';
                 return;
             }
             
             builds.forEach(build => {
                 const card = document.createElement('div');
-                card.className = 'recent-build-card';
+                card.className = 'recent-card';
                 
                 if (build.status === 'running') {
                     card.style.cursor = 'pointer';
@@ -414,38 +415,46 @@ function loadRecentBuilds() {
                     sizeDisplay = 'N/A';
                 }
                 
+                let statusChipHTML = '';
                 let actionHTML = '';
                 if (build.status === 'success') {
-                    actionHTML = `<a href="/download/${build.apk_id}" class="recent-download-btn" download>Download</a>`;
+                    statusChipHTML = `<span class="status-chip success">Success</span>`;
+                    actionHTML = `<a href="/download/${build.apk_id}" class="recent-dl-link" download>Download</a>`;
                 } else if (build.status === 'running') {
-                    actionHTML = `<div style="display:flex; align-items:center; gap: 10px;">
-                                    <div style="display:flex; align-items:center; color: var(--color-blue); font-size: 13px;">
-                                        <div class="spinner" style="display:inline-block; width:12px; height:12px; border-width: 2px; border-top-color: var(--color-blue); margin-right: 6px;"></div>
-                                        Building...
-                                    </div>
-                                    <button type="button" onclick="cancelBuild('${build.build_id}')" style="background:transparent; border:1px solid var(--color-red); color:var(--color-red); border-radius:4px; padding:3px 8px; font-size:11px; cursor:pointer;">Cancel</button>
-                                  </div>`;
+                    statusChipHTML = `<span class="status-chip running">Building</span>`;
+                    actionHTML = `<button type="button" class="google-btn-text-danger" onclick="cancelBuild('${build.build_id}')" style="padding: 2px 8px; font-size: 11px;">Cancel</button>`;
                 } else {
-                    actionHTML = `<span style="color: var(--color-red); font-size: 13px; font-weight: 500;">Failed</span>`;
+                    statusChipHTML = `<span class="status-chip failed">Failed</span>`;
+                    actionHTML = '';
                 }
                 
                 card.innerHTML = `
-                    <div class="build-info">
-                        <div class="build-name" title="${build.original_name}">${build.original_name}</div>
-                        <div class="build-meta-row">
-                            <span>${sizeDisplay}</span>
-                            <span>•</span>
-                            <span class="build-time-rem" ${build.status === 'failed' ? 'style="color:var(--color-red);"' : ''}>${build.time_remaining}</span>
+                    <div class="recent-left-details">
+                        <div class="android-badge-icon">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                <path d="M7 11c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm10 0c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm-9.3-3.8l-.8-.8c-.3-.3-.3-.8 0-1.1s.8-.3 1.1 0l1 1c1-.4 2.1-.6 3.2-.6s2.2.2 3.2.6l1-1c.3-.3.8-.3 1.1 0s.3.8 0 1.1l-.8.8C16.5 7.8 18 9.7 18 12H6c0-2.3 1.5-4.2 3.7-4.8zM6 13h12v3c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-3z"/>
+                            </svg>
+                        </div>
+                        <div class="recent-meta-text">
+                            <span class="recent-title" title="${build.original_name}">${build.original_name}</span>
+                            <div class="recent-sub-meta">
+                                <span>${sizeDisplay}</span>
+                                <span>•</span>
+                                <span ${build.status === 'failed' ? 'style="color:var(--error);"' : ''}>${build.time_remaining}</span>
+                            </div>
                         </div>
                     </div>
-                    ${actionHTML}
+                    <div class="recent-status-row">
+                        ${statusChipHTML}
+                        ${actionHTML}
+                    </div>
                 `;
                 listContainer.appendChild(card);
             });
         })
         .catch(err => {
             console.error("Failed to load recent builds:", err);
-            listContainer.innerHTML = '<div class="no-builds-msg" style="color: var(--color-red);">Failed to load history</div>';
+            listContainer.innerHTML = '<div class="no-builds-empty" style="color: var(--error);">Failed to load history</div>';
         });
 }
 
@@ -650,4 +659,45 @@ function sendBrowserNotification(buildId, title, body, isSuccess) {
             console.error("Failed to trigger Notification API:", err);
         }
     }
+}
+
+// Copy entire logs content to clipboard
+function copyLogs() {
+    const terminal = document.getElementById('terminal');
+    if (!terminal) return;
+    
+    const text = Array.from(terminal.querySelectorAll('.terminal-line'))
+        .map(el => el.innerText)
+        .join('\n');
+        
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            alert('Logs copied to clipboard!');
+        })
+        .catch(err => {
+            console.error('Failed to copy logs:', err);
+            alert('Failed to copy logs.');
+        });
+}
+
+// Download raw log text file
+function downloadLogs() {
+    const terminal = document.getElementById('terminal');
+    if (!terminal) return;
+    
+    const text = Array.from(terminal.querySelectorAll('.terminal-line'))
+        .map(el => el.innerText)
+        .join('\n');
+        
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `build_log_${currentBuildId || 'export'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
