@@ -38,7 +38,25 @@ body {
 
 /* Cyberpunk Mesh Glow Background */
 .glow-bg {
-    display: none;
+    display: block;
+    position: fixed;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    z-index: -1;
+    background: radial-gradient(circle at 20% 30%, rgba(236, 114, 17, 0.1), transparent 45%),
+                radial-gradient(circle at 80% 70%, rgba(27, 132, 227, 0.12), transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(31, 138, 112, 0.05), transparent 40%);
+    filter: blur(80px);
+    pointer-events: none;
+    animation: rotateGlow 25s ease infinite alternate;
+}
+
+@keyframes rotateGlow {
+    0% { transform: rotate(0deg) translate(0px, 0px); }
+    50% { transform: rotate(4deg) translate(30px, -30px); }
+    100% { transform: rotate(-4deg) translate(-30px, 30px); }
 }
 
 .app-container {
@@ -55,8 +73,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #16191f;
-    border-bottom: 1.5px solid var(--border-color);
+    background: rgba(22, 25, 31, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     padding: 14px 24px;
     margin-bottom: 32px;
     margin-left: -24px;
@@ -127,11 +147,13 @@ body {
 
 /* Glass Panels */
 .panel {
-    background: var(--panel-bg);
-    border: 1px solid var(--border-color);
+    background: rgba(22, 25, 31, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     padding: 24px;
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
 }
@@ -374,8 +396,10 @@ input[type="url"]:focus {
 .status-tracker {
     margin-top: 24px;
     padding: 18px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
+    background: rgba(15, 20, 28, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     animation: slideDown 0.3s ease;
 }
@@ -1124,9 +1148,18 @@ input[type="url"]:focus {
 
 /* Recent Builds Custom Layout Override */
 .recent-build-card {
-    background: #16191f;
+    background: rgba(22, 25, 31, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 4px;
     padding: 10px 12px;
+    transition: var(--transition);
+}
+
+.recent-build-card:hover {
+    border-color: rgba(236, 114, 17, 0.3);
+    background: rgba(236, 114, 17, 0.03);
 }
 
 .recent-download-btn {
@@ -1144,11 +1177,6 @@ input[type="url"]:focus {
     border-color: #879596;
     color: #eaeded;
     box-shadow: none;
-}
-
-.recent-build-card:hover {
-    border-color: #545b64;
-    background: #1e252e;
 }
 
 /* ==========================================
