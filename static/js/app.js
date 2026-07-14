@@ -279,7 +279,8 @@ function connectLogStream(buildId, createdAt) {
     clearTerminal();
     document.getElementById('success-box').style.display = 'none';
     document.getElementById('tracker-panel').style.display = 'block';
-    document.getElementById('status-title').innerText = 'Status: Compiling...';
+    document.getElementById('upload-animation').style.display = 'flex';
+    document.getElementById('status-title').innerText = 'Status: Uploading/Extracting...';
     document.getElementById('status-percentage').innerText = '0%';
     
     // Reset progress UI
@@ -351,6 +352,12 @@ function connectLogStream(buildId, createdAt) {
         appendLog(line, type);
         parseLogForProgress(line);
 
+        // Hide animation once extraction is done and build begins
+        if (line.includes('Starting build for ID') || line.includes('Executing: gradle')) {
+            document.getElementById('upload-animation').style.display = 'none';
+            document.getElementById('status-title').innerText = 'Status: Compiling...';
+        }
+
         // ── Instant success: stop timer + show download button immediately ──
         if (line.includes('[SYSTEM] APK generated successfully') || line.includes('[SYSTEM] File:')) {
             stopTimer();
@@ -360,7 +367,8 @@ function connectLogStream(buildId, createdAt) {
         }
 
         // Stop timer immediately on failure too
-        if (line.includes('BUILD FAILED') && !line.includes('Running diagnostic')) {
+        if (line.includes('BUILD FAILED') && !line.includes('Running diagnostic') || line.includes('[ERROR]')) {
+            document.getElementById('upload-animation').style.display = 'none';
             stopTimer();
             enableSubmitButton(true);
         }
