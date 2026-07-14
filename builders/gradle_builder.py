@@ -360,7 +360,7 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
             if os.path.exists(gradlew_path):
                 if is_windows:
                     # Windows: execute .bat file safely using cmd /c
-                    cmd = ["cmd.exe", "/c", gradlew_path, "assembleDebug"]
+                    cmd = ["cmd.exe", "/c", gradlew_path, "assembleDebug", "--console=plain"]
                 else:
                     # Linux: set execute permissions and run via /bin/sh
                     try:
@@ -368,13 +368,13 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                         log_file.write("[SYSTEM] Made gradlew script executable.\n")
                     except Exception as e:
                         log_file.write(f"[WARNING] Failed to chmod +x gradlew: {e}\n")
-                    cmd = ["/bin/sh", gradlew_path, "assembleDebug"]
+                    cmd = ["/bin/sh", gradlew_path, "assembleDebug", "--console=plain"]
             else:
                 log_file.write("[WARNING] gradlew script not found in project root. Attempting fallback to global 'gradle' command...\n")
                 if is_windows:
-                    cmd = ["cmd.exe", "/c", "gradle", "assembleDebug"]
+                    cmd = ["cmd.exe", "/c", "gradle", "assembleDebug", "--console=plain"]
                 else:
-                    cmd = ["gradle", "assembleDebug"]
+                    cmd = ["gradle", "assembleDebug", "--console=plain"]
                 
             # Run google-services check and auto-heal
             heal_google_services(project_root, log_file)
