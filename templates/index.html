@@ -19,14 +19,12 @@
                     <img src="{{ url_for('static', filename='img/kuttans_logo.png') }}" alt="Kuttans Logo" width="30" height="30" style="border-radius:4px; display:block;">
                 </div>
                 <span class="aws-nav-service-name">Kuttans App Builder</span>
-                <div class="aws-nav-divider"></div>
-                <nav class="aws-nav-links">
-                    <a href="/" class="aws-nav-link active">Build</a>
-                    <a href="/dev/logs" class="aws-nav-link">Developer Logs</a>
-                </nav>
             </div>
             <!-- Right: Actions -->
             <div class="aws-nav-right" style="position: relative;">
+                <a href="/" class="header-nav-btn active">Console Home</a>
+                <a href="/dev/logs" class="header-nav-btn">Developer Tools</a>
+                
                 <!-- Notification Bell -->
                 <button type="button" class="aws-nav-action-btn notification-btn-custom" id="notification-btn" onclick="toggleNotifications()">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -52,13 +50,6 @@
                 </button>
             </div>
         </header>
-
-        <!-- Banner Navigation Buttons -->
-        <div class="banner-nav-buttons">
-            <a href="/" class="banner-nav-btn">Console Home</a>
-            <a href="/dev/logs" class="banner-nav-btn">Developer Tools</a>
-            <a href="/" class="banner-nav-btn active">Kuttans App Builder</a>
-        </div>
 
         <!-- AWS Service Title -->
         <div class="aws-service-title" style="margin-top: 10px;">

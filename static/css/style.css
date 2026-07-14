@@ -1457,34 +1457,31 @@ input[type="url"]:focus {
     color: #ffffff;
 }
 
-/* Banner Navigation Buttons */
-.banner-nav-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.banner-nav-btn {
+/* Header Navigation Buttons */
+.header-nav-btn {
     text-decoration: none;
-    background: #16191f;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 8px 16px;
-    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #eaeded;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
     font-weight: 600;
+    padding: 6px 14px;
     border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
     transition: var(--transition);
+    height: 30px;
 }
 
-.banner-nav-btn:hover {
-    background: #2e353e;
-    color: var(--text-primary);
-    border-color: #545b64;
+.header-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
-.banner-nav-btn.active {
-    background: rgba(236, 114, 17, 0.08);
+.header-nav-btn.active {
+    background: rgba(236, 114, 17, 0.12);
     border-color: var(--color-cyan);
     color: var(--color-cyan);
 }
