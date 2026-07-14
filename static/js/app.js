@@ -145,11 +145,13 @@ function parseLogForProgress(line) {
         taskText.innerText = 'Build finished successfully';
         document.getElementById('status-title').innerText = 'Status: SUCCESSFUL';
         progressBar.style.background = 'linear-gradient(90deg, var(--color-green), #00c853)';
+        setSmileyExpression('happy');
     }
     else if (line.includes('BUILD FAILED') || line.includes('[ERROR]')) {
         taskText.innerText = 'Build pipeline failed';
         document.getElementById('status-title').innerText = 'Status: FAILED';
         progressBar.style.background = 'var(--color-red)';
+        setSmileyExpression('sad');
     }
 }
 
@@ -200,6 +202,7 @@ function checkBuildStatus(buildId) {
                 
                 document.getElementById('success-box').style.display = 'block';
                 appendLog("[SYSTEM] APK available for download.", "success");
+                setSmileyExpression('happy');
                 
                 if (currentBuildId === buildId) {
                     sendBrowserNotification(buildId, "Build Successful! 🎉", `APK "${data.filename}" is ready for download.`, true);
@@ -210,6 +213,7 @@ function checkBuildStatus(buildId) {
             else if (data.status === 'failed') {
                 stopTimer();
                 appendLog(`[SYSTEM] Compilation aborted. Reason: ${data.error}`, "error");
+                setSmileyExpression('sad');
                 
                 if (currentBuildId === buildId) {
                     sendBrowserNotification(buildId, "Build Failed ❌", `Reason: ${data.error}`, false);
@@ -259,6 +263,7 @@ function connectLogStream(buildId, createdAt) {
     window._buildSuccessHandled = false;
     
     // UI resets
+    setSmileyExpression('running');
     clearTerminal();
     document.getElementById('success-box').style.display = 'none';
     document.getElementById('tracker-panel').style.display = 'block';
@@ -716,4 +721,14 @@ function openModal(id) {
 function closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
+}
+
+// Dynamic Hero Smiley Face Expressions
+function setSmileyExpression(state) {
+    const el = document.getElementById('hero-smiley');
+    if (!el) return;
+    el.classList.remove('happy', 'sad', 'running');
+    if (state) {
+        el.classList.add(state);
+    }
 }

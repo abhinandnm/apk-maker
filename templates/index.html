@@ -91,14 +91,22 @@
                         </g>
 
                         <!-- Android smiley face (Center Anchor) -->
-                        <g transform="translate(100, 60) scale(1.1)" class="node-smiley">
-                            <circle cx="0" cy="0" r="22" fill="#E6F4EA" stroke="#34A853" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(52,168,83,0.15));"/>
+                        <g transform="translate(100, 60) scale(1.1)" class="node-smiley" id="hero-smiley">
+                            <circle class="smiley-bg" cx="0" cy="0" r="22" fill="#E6F4EA" stroke="#34A853" stroke-width="1.5" style="filter: drop-shadow(0 4px 6px rgba(52,168,83,0.15));"/>
                             <!-- Blinking left eye -->
                             <rect class="eye left-eye" x="-9" y="-6" width="2" height="10" rx="1" fill="#34A853"/>
                             <!-- Blinking right eye -->
                             <rect class="eye right-eye" x="7" y="-6" width="2" height="10" rx="1" fill="#34A853"/>
-                            <!-- Smiley mouth -->
-                            <rect x="-11" y="8" width="22" height="4" rx="2" fill="#34A853"/>
+                            
+                            <!-- Mouth expressions (Toggled via CSS classes) -->
+                            <!-- Neutral Mouth (Default) -->
+                            <path class="mouth mouth-neutral" d="M-9,8 L9,8" stroke="#34A853" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Happy Mouth -->
+                            <path class="mouth mouth-happy" d="M-9,6 Q0,15 9,6" stroke="#34A853" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Sad Mouth -->
+                            <path class="mouth mouth-sad" d="M-9,12 Q0,3 9,12" stroke="#34A853" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Running/Surprised Mouth -->
+                            <circle class="mouth mouth-running" cx="0" cy="8" r="2.5" fill="none" stroke="#34A853" stroke-width="3"/>
                         </g>
                     </svg>
                 </div>

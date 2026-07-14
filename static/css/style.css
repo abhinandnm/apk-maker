@@ -1207,56 +1207,113 @@ input[type="url"] {
 /* Horizontal sideways revolving orbits */
 @keyframes orbitGit {
     0% {
-        transform: translate(0px, 0px) scale(1);
+        transform: translate(40px, 60px) scale(1);
         opacity: 1;
     }
     25% {
-        transform: translate(60px, -4px) scale(1.2);
+        transform: translate(100px, 56px) scale(1.2);
         opacity: 1;
     }
     50% {
-        transform: translate(120px, 0px) scale(1);
+        transform: translate(160px, 60px) scale(1);
         opacity: 0.85;
     }
     75% {
-        transform: translate(60px, 4px) scale(0.75);
+        transform: translate(100px, 64px) scale(0.75);
         opacity: 0.2;
     }
     100% {
-        transform: translate(0px, 0px) scale(1);
+        transform: translate(40px, 60px) scale(1);
         opacity: 1;
     }
 }
 
 @keyframes orbitCloud {
     0% {
-        transform: translate(0px, 0px) scale(1);
+        transform: translate(160px, 60px) scale(1);
         opacity: 1;
     }
     25% {
-        transform: translate(-60px, 4px) scale(0.75);
+        transform: translate(100px, 64px) scale(0.75);
         opacity: 0.2;
     }
     50% {
-        transform: translate(-120px, 0px) scale(1);
+        transform: translate(40px, 60px) scale(1);
         opacity: 0.85;
     }
     75% {
-        transform: translate(-60px, -4px) scale(1.2);
+        transform: translate(100px, 56px) scale(1.2);
         opacity: 1;
     }
     100% {
-        transform: translate(0px, 0px) scale(1);
+        transform: translate(160px, 60px) scale(1);
         opacity: 1;
     }
 }
 
 .node-git {
     animation: orbitGit 10s infinite ease-in-out;
+    transform-origin: center;
 }
 
 .node-cloud {
     animation: orbitCloud 10s infinite ease-in-out;
+    transform-origin: center;
+}
+
+/* Smiley face expressions display states */
+.node-smiley {
+    transform: translate(100px, 60px) scale(1.1);
+    transform-origin: center;
+    transition: all 0.3s ease;
+}
+
+.node-smiley .mouth {
+    display: none;
+}
+
+/* Neutral state */
+.node-smiley:not(.happy):not(.sad):not(.running) .mouth-neutral {
+    display: block;
+}
+
+/* Happy state */
+.node-smiley.happy .mouth-happy {
+    display: block;
+}
+.node-smiley.happy .smiley-bg {
+    fill: #E6F4EA !important;
+    stroke: var(--success) !important;
+}
+.node-smiley.happy .eye, .node-smiley.happy .mouth {
+    fill: var(--success) !important;
+    stroke: var(--success) !important;
+}
+
+/* Sad state */
+.node-smiley.sad .mouth-sad {
+    display: block;
+}
+.node-smiley.sad .smiley-bg {
+    fill: #FCE8E6 !important;
+    stroke: var(--error) !important;
+}
+.node-smiley.sad .eye, .node-smiley.sad .mouth {
+    fill: var(--error) !important;
+    stroke: var(--error) !important;
+}
+
+/* Running state */
+.node-smiley.running .mouth-running {
+    display: block;
+}
+.node-smiley.running .smiley-bg {
+    fill: #E8F0FE !important;
+    stroke: var(--primary) !important;
+}
+.node-smiley.running .eye, .node-smiley.running .mouth {
+    fill: var(--primary) !important;
+    stroke: var(--primary) !important;
 }
 
 /* Global mobile horizontal scroll prevention */
