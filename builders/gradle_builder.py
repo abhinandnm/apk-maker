@@ -415,7 +415,7 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                         cmd,
                         cwd=project_root,
                         stdout=log_file,
-                        stderr=log_file,
+                        stderr=subprocess.STDOUT,
                         env=env,
                         text=True
                     )

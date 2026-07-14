@@ -316,8 +316,10 @@ def dev_logs():
         build_id = os.path.splitext(filename)[0]
         
         stat = os.stat(file_path)
-        # Convert modification time to readable string
-        modified_time = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+        # Convert modification time to IST (+05:30)
+        from datetime import timezone, timedelta
+        ist = timezone(timedelta(hours=5, minutes=30))
+        modified_time = datetime.fromtimestamp(stat.st_mtime, tz=ist).strftime('%Y-%m-%d %H:%M:%S')
         
         status = read_status(build_id)
         
