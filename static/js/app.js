@@ -141,6 +141,7 @@ function parseLogForProgress(line) {
         }
     }
     else if (line.includes('BUILD SUCCESSFUL')) {
+        progressBar.classList.remove('progress-bar-animated');
         progressBar.style.width = '100%';
         progressText.innerText = '100%';
         taskText.innerText = 'Build finished successfully';
@@ -151,6 +152,7 @@ function parseLogForProgress(line) {
     else if (line.includes('BUILD FAILED') || line.includes('[ERROR]')) {
         taskText.innerText = 'Build pipeline failed';
         document.getElementById('status-title').innerText = 'Status: FAILED';
+        progressBar.classList.remove('progress-bar-animated');
         progressBar.style.background = 'var(--color-red)';
         setSmileyExpression('sad');
     }
@@ -279,8 +281,12 @@ function connectLogStream(buildId, createdAt) {
     document.getElementById('tracker-panel').style.display = 'block';
     document.getElementById('status-title').innerText = 'Status: Compiling...';
     document.getElementById('status-percentage').innerText = '0%';
-    document.getElementById('progress-bar').style.width = '0%';
-    document.getElementById('progress-bar').style.background = 'linear-gradient(90deg, var(--color-cyan), var(--color-blue))';
+    
+    // Reset progress UI
+    const pb = document.getElementById('progress-bar');
+    pb.style.width = '0%';
+    pb.style.background = ''; // Clear inline background
+    pb.classList.add('progress-bar-animated'); // Add rainbow animation
     document.getElementById('current-task').innerText = 'Contacting server...';
     
     // Smoothly scroll to the smiley face illustration to show state change
