@@ -133,30 +133,38 @@ def heal_gradle_properties(project_root, log_file):
     needs_update = False
     mode = "a" if os.path.exists(props_path) else "w"
     
-    try:
-        with open(props_path, mode, encoding="utf-8") as f:
-            if mode == "w":
-                log_file.write("[SYSTEM] Creating gradle.properties with memory optimizations...\n")
+    import re
+    if mode == "w":
+        log_file.write("[SYSTEM] Creating gradle.properties with memory optimizations...\n")
+        try:
+            with open(props_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines_to_add) + "\n")
-            else:
-                if "org.gradle.jvmargs" not in existing_content:
-                    f.write("\norg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC\n")
-                    needs_update = True
-                if "org.gradle.daemon" not in existing_content:
-                    f.write("\norg.gradle.daemon=false\n")
-                    needs_update = True
-                if "org.gradle.parallel" not in existing_content:
-                    f.write("\norg.gradle.parallel=false\n")
-                    needs_update = True
-                if "org.gradle.workers.max" not in existing_content:
-                    f.write("\norg.gradle.workers.max=1\n")
-                    needs_update = True
-                if "kotlin.compiler.execution.strategy" not in existing_content:
-                    f.write("\nkotlin.compiler.execution.strategy=in-process\n")
-                    needs_update = True
-                    
-                if needs_update:
-                    log_file.write("[SYSTEM] Appended JVM memory optimization arguments to gradle.properties.\n")
+        except Exception as e:
+            log_file.write(f"[WARNING] Could not write gradle.properties: {e}\n")
+    else:
+        log_file.write("[SYSTEM] Overriding existing gradle.properties with strict EC2 memory limits...\n")
+        try:
+            # Force replace existing args to strictly enforce memory limits
+            content = existing_content
+            content = re.sub(r'(?m)^org\.gradle\.jvmargs=.*$', 'org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC', content)
+            content = re.sub(r'(?m)^org\.gradle\.daemon=.*$', 'org.gradle.daemon=false', content)
+            content = re.sub(r'(?m)^org\.gradle\.parallel=.*$', 'org.gradle.parallel=false', content)
+            content = re.sub(r'(?m)^org\.gradle\.workers\.max=.*$', 'org.gradle.workers.max=1', content)
+            content = re.sub(r'(?m)^kotlin\.compiler\.execution\.strategy=.*$', 'kotlin.compiler.execution.strategy=in-process', content)
+            
+            # If they didn't exist before, append them now
+            if "org.gradle.jvmargs" not in existing_content: content += "\norg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC\n"
+            if "org.gradle.daemon" not in existing_content: content += "\norg.gradle.daemon=false\n"
+            if "org.gradle.parallel" not in existing_content: content += "\norg.gradle.parallel=false\n"
+            if "org.gradle.workers.max" not in existing_content: content += "\norg.gradle.workers.max=1\n"
+            if "kotlin.compiler.execution.strategy" not in existing_content: content += "\nkotlin.compiler.execution.strategy=in-process\n"
+            
+            with open(props_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            log_file.write("[SYSTEM] Applied strict JVM memory optimization arguments to gradle.properties.\n")
+        except Exception as e:
+            log_file.write(f"[WARNING] Could not overwrite gradle.properties: {e}\n")
+        log_file.flush()
         log_file.flush()
     except Exception as e:
         log_file.write(f"[WARNING] Failed to heal gradle.properties: {e}\n")
