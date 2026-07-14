@@ -494,13 +494,21 @@ function toggleNotifications() {
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    content.innerHTML = `
-                        <div style="margin-bottom: 8px;">
-                            <span style="font-family: monospace; background: #eaeded; padding: 2px 4px; border-radius: 3px; font-weight: bold; color: #545b64;">${data.hash}</span>
-                            <span style="color: #545b64; margin-left: 5px;">${data.time}</span>
-                        </div>
-                        <div style="color: #16191f; line-height: 1.4;">${data.message}</div>
-                    `;
+                    let html = '';
+                    data.commits.forEach((commit, index) => {
+                        const borderStyle = index === data.commits.length - 1 ? '' : 'border-bottom: 1px solid rgba(0,0,0,0.08);';
+                        const paddingStyle = index === 0 ? 'padding-top: 0;' : 'padding-top: 10px;';
+                        html += `
+                            <div class="notification-item" style="padding-bottom: 10px; ${paddingStyle} ${borderStyle}">
+                                <div style="margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                                    <span style="font-family: monospace; background: #eaeded; padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #545b64; font-size: 11px;">${commit.hash}</span>
+                                    <span style="color: #545b64; font-size: 11px;">${commit.time}</span>
+                                </div>
+                                <div style="color: #16191f; line-height: 1.4; font-size: 12px; word-break: break-word;">${commit.message}</div>
+                            </div>
+                        `;
+                    });
+                    content.innerHTML = html;
                 } else {
                     content.innerHTML = `<div style="color: var(--color-red);">${data.message}</div>`;
                 }

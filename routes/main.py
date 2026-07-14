@@ -494,26 +494,34 @@ def clear_all_data():
 def get_latest_update():
     import subprocess
     try:
-        # Get the latest commit hash, message, and relative time
+        # Get the last 10 commits: hash, message, and relative time
         # Format: Hash|Message|Time
         result = subprocess.run(
-            ['git', 'log', '-1', '--pretty=format:%h|%s|%ar'],
+            ['git', 'log', '-10', '--pretty=format:%h|%s|%ar'],
             capture_output=True,
             text=True,
             check=True,
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         )
-        parts = result.stdout.strip().split('|', 2)
-        if len(parts) == 3:
+        lines = result.stdout.strip().split('\n')
+        commits = []
+        for line in lines:
+            parts = line.strip().split('|', 2)
+            if len(parts) == 3:
+                commits.append({
+                    "hash": parts[0],
+                    "message": parts[1],
+                    "time": parts[2]
+                })
+        
+        if commits:
             return jsonify({
                 "status": "success",
-                "hash": parts[0],
-                "message": parts[1],
-                "time": parts[2]
+                "commits": commits
             })
-        return jsonify({"status": "error", "message": "Could not parse git log"})
+        return jsonify({"status": "error", "message": "No updates found in git log"})
     except Exception as e:
-        logger.error(f"Failed to fetch git commit: {e}")
+        logger.error(f"Failed to fetch git commits: {e}")
         return jsonify({"status": "error", "message": "Git is not initialized or an error occurred."})
 
 @main_bp.route('/cancel-build/<build_id>', methods=['POST'])
