@@ -115,7 +115,7 @@ def heal_gradle_properties(project_root, log_file):
     """
     props_path = os.path.join(project_root, "gradle.properties")
     lines_to_add = [
-        "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC",
+        "org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC",
         "org.gradle.daemon=false"
     ]
     
@@ -137,7 +137,7 @@ def heal_gradle_properties(project_root, log_file):
                 f.write("\n".join(lines_to_add) + "\n")
             else:
                 if "org.gradle.jvmargs" not in existing_content:
-                    f.write("\norg.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC\n")
+                    f.write("\norg.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC\n")
                     needs_update = True
                 if "org.gradle.daemon" not in existing_content:
                     f.write("\norg.gradle.daemon=false\n")
