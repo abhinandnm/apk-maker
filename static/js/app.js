@@ -216,6 +216,20 @@ function checkBuildStatus(buildId) {
                 appendLog(`[SYSTEM] Compilation aborted. Reason: ${data.error}`, "error");
                 setSmileyExpression('sad');
                 
+                // Show retry advisory specifically for pipeline interruption errors
+                if (data.error && (data.error.includes('Build pipeline was interrupted') || data.error.includes('Compilation aborted'))) {
+                    appendLog('', '');
+                    appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+                    appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
+                    appendLog('   This is usually caused by a stale Gradle Daemon or low server memory.', 'warning');
+                    appendLog('', '');
+                    appendLog('   ✅  To fix this:', 'system');
+                    appendLog('   1. Refresh your browser (F5 or Ctrl+R / Cmd+R)', 'system');
+                    appendLog('   2. Then click "Build APK" again to retry the compilation.', 'system');
+                    appendLog('   3. If the issue persists, use the "Clear Session" button in the top toolbar, then try again.', 'system');
+                    appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+                }
+                
                 if (currentBuildId === buildId) {
                     sendBrowserNotification(buildId, "Build Failed ❌", `Reason: ${data.error}`, false);
                 }
