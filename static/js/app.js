@@ -217,16 +217,11 @@ function checkBuildStatus(buildId) {
                 setSmileyExpression('sad');
                 
                 // Show retry advisory specifically for pipeline interruption errors
-                if (data.error && (data.error.includes('Build pipeline was interrupted') || data.error.includes('Compilation aborted'))) {
+                if (data.error && (data.error.includes('Build failed') || data.error.includes('Compilation aborted') || data.error.includes('Gradle Build Failed'))) {
                     appendLog('', '');
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
-                    appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
-                    appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
-                    appendLog('', '');
-                    appendLog('   ✅  To fix this, simply:', 'system');
-                    appendLog('   1. Click "Build APK" again to retry.', 'system');
-                    appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
-                    appendLog('   3. Ennitum work aille maama enik message itta mathi 😄', 'system');
+                    appendLog('⚠️  Your build failed due to compilation errors.', 'warning');
+                    appendLog('   Please scroll up to read the specific error message from the compiler.', 'warning');
                     appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
                 }
                 
@@ -364,17 +359,16 @@ function connectLogStream(buildId, createdAt) {
             enableSubmitButton(true);
         }
         
-        // Show user-friendly retry guidance when compilation is interrupted (via streamed lines)
-        if (line.includes('Build pipeline was interrupted') || line.includes('Compilation aborted')) {
+        // Show user-friendly retry guidance when compilation fails
+        if (line.includes('Gradle Build Failed') || line.includes('Compilation aborted')) {
             appendLog('', '');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
-            appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
-            appendLog('   This usually happens due to a stale Gradle Daemon or low server memory.', 'warning');
+            appendLog('⚠️  Your build failed due to compilation errors.', 'warning');
+            appendLog('   This usually happens due to syntax errors in your code, or incompatible Gradle plugins/dependencies.', 'warning');
             appendLog('', '');
-            appendLog('   ✅  To fix this, simply:', 'system');
-            appendLog('   1. Click "Build APK" again to retry.', 'system');
-            appendLog('   2. If it keeps failing, use "Clear Session" in the top toolbar, then try again.', 'system');
-            appendLog('   3. Ennitum work aille maama enik message itta mathi 😄', 'system');
+            appendLog('   ✅  To fix this:', 'system');
+            appendLog('   1. Scroll up to read the specific error message from the compiler.', 'system');
+            appendLog('   2. Fix the error in your Android project files.', 'system');
             appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
         }
     };

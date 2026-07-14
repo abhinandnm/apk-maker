@@ -26,7 +26,7 @@ python3-venv \
 python3-dev \
 build-essential
 ```
-
+ 2q
 ---
 
 ## 2. Install Java Development Kit (JDK 17)

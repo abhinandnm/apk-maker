@@ -127,7 +127,7 @@ def build_worker(build_id, source_type, source_value, original_filename):
         # Append error directly to build logs for user visibility
         try:
             with open(log_file_path, "a", encoding="utf-8") as lf:
-                lf.write(f"\n[ERROR] Build pipeline interrupted: {str(e)}\n")
+                lf.write(f"\n[ERROR] Build failed: {str(e)}\n")
                 lf.write("BUILD FAILED\n")
         except Exception as le:
             logger.error(f"Could not append error to log: {le}")
@@ -246,7 +246,7 @@ def check_build_status(build_id):
     status_raw = read_status(build_id)
     
     if status_raw == "RUNNING" and build_id not in active_threads:
-        status_raw = "FAILED: Build pipeline was interrupted."
+        status_raw = "FAILED: Build failed."
         write_status(build_id, status_raw)
         
     if status_raw == "RUNNING":
@@ -395,7 +395,7 @@ def get_recent_builds():
         status = read_status(build_id)
         
         if status == "RUNNING" and build_id not in active_threads:
-            status = "FAILED: Build pipeline was interrupted."
+            status = "FAILED: Build failed."
             write_status(build_id, status)
             
         created_at = get_build_start_time(build_id)
