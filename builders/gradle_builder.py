@@ -343,6 +343,21 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                 env["ANDROID_HOME"] = sdk_path
                 env["ANDROID_SDK_ROOT"] = sdk_path
                 
+            # Stop any stale background Gradle daemons to free up RAM before starting compilation
+            try:
+                stop_cmd = ["cmd.exe", "/c", gradlew_path, "--stop"] if is_windows else ["/bin/sh", gradlew_path, "--stop"]
+                if not os.path.exists(gradlew_path):
+                    stop_cmd = ["cmd.exe", "/c", "gradle", "--stop"] if is_windows else ["gradle", "--stop"]
+                
+                log_file.write("[SYSTEM] Cleaning up stale background Gradle Daemons to reclaim system RAM...\n")
+                log_file.flush()
+                subprocess.run(stop_cmd, cwd=project_root, env=env, capture_output=True, timeout=15)
+                log_file.write("[SYSTEM] Background Gradle Daemons stopped successfully.\n")
+                log_file.flush()
+            except Exception as se:
+                log_file.write(f"[WARNING] Could not stop background daemons: {se}\n")
+                log_file.flush()
+
             # 4. Run Gradle Build subprocess inside a retry-loop for self-healing missing SDK/tools
             max_attempts = 2
             build_succeeded = False
@@ -397,7 +412,15 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                         log_file.flush()
                         continue
                     else:
-                        raise RuntimeError(f"Gradle build failed with exit code {exit_code}.")
+                        log_file.write("\n[ERROR] Build pipeline interrupted / Gradle Daemon reuse failure.\n")
+                        log_file.write("Reason: Stale, orphaned Gradle Daemons or processes are occupying the server's memory (RAM).\n")
+                        log_file.write("This frequently occurs when the build sandbox runs out of memory or a process crashes.\n\n")
+                        log_file.write("Action Steps to Resolve:\n")
+                        log_file.write("1. Click the 'Clear Session' button in the top navigation bar to reset local cache folders.\n")
+                        log_file.write("2. Wait a few seconds to let system processes clear out, then click 'Build APK' to try compilation again.\n")
+                        log_file.write("3. If this continues, restart the server or run 'gradle --stop' locally to terminate stale processes.\n\n")
+                        log_file.flush()
+                        raise RuntimeError(f"Gradle build failed with exit code {exit_code}. Memory exhaustion or stale daemon lock occurred.")
                         
                 except FileNotFoundError as fnfe:
                     log_file.write(f"\n[ERROR] Gradle executable not found.\n")
