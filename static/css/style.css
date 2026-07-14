@@ -1181,3 +1181,110 @@ input[type="url"] {
         box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
 }
+
+/* Smiley Face Eye Blink Animations */
+.eye {
+    animation: blinkEye 4s infinite;
+}
+
+.left-eye {
+    transform-origin: -8px -1px;
+}
+
+.right-eye {
+    transform-origin: 8px -1px;
+}
+
+@keyframes blinkEye {
+    0%, 90%, 100% {
+        transform: scaleY(1);
+    }
+    93%, 95% {
+        transform: scaleY(0.15);
+    }
+}
+
+/* Horizontal sideways revolving orbits */
+@keyframes orbitGit {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: translate(60px, -4px) scale(1.2);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(120px, 0px) scale(1);
+        opacity: 0.85;
+    }
+    75% {
+        transform: translate(60px, 4px) scale(0.75);
+        opacity: 0.2;
+    }
+    100% {
+        transform: translate(0px, 0px) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes orbitCloud {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: translate(-60px, 4px) scale(0.75);
+        opacity: 0.2;
+    }
+    50% {
+        transform: translate(-120px, 0px) scale(1);
+        opacity: 0.85;
+    }
+    75% {
+        transform: translate(-60px, -4px) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0px, 0px) scale(1);
+        opacity: 1;
+    }
+}
+
+.node-git {
+    animation: orbitGit 10s infinite ease-in-out;
+}
+
+.node-cloud {
+    animation: orbitCloud 10s infinite ease-in-out;
+}
+
+/* Global mobile horizontal scroll prevention */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.main-container {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+    .google-app-bar {
+        padding: 0 10px;
+    }
+    .bar-right {
+        gap: 6px;
+    }
+    .product-title {
+        font-size: 1.1rem;
+    }
+    .main-container {
+        padding: 16px 12px;
+    }
+    .google-card {
+        padding: 16px 12px !important;
+        border-radius: 16px !important;
+    }
+}

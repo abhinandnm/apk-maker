@@ -3,315 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Build Log | Kuttans App Builder</title>
+    <title>Build Log View | APK Builder</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Roboto:wght@400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg: #0f141c;
-            --nav-bg: #16191f;
-            --panel: #16191f;
-            --panel-alt: #1e252e;
-            --terminal-bg: #090d12;
-            --border: #2e353e;
-            --orange: #ec7211;
-            --blue: #1b84e3;
-            --green-light: #3fcf8e;
-            --red: #d9534f;
-            --text: #f1f3f3;
-            --text-dim: #cbd5e1;
-            --text-muted: #879596;
-            --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        /* Details panel for the current log view */
+        .log-details-card {
+            margin-bottom: 24px;
         }
-
-        body {
-            font-family: var(--sans);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+        
+        .log-details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .log-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .log-detail-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+        }
+        
+        .log-detail-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+        
+        /* Specific terminal style overrides */
+        .viewer-log-card {
+            padding: 0;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
         }
-
-        /* ── AWS Top Navbar ── */
-        .aws-navbar {
-            background-color: var(--nav-bg);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; height: 48px; flex-shrink: 0;
-        }
-        .aws-nav-left { display: flex; align-items: center; gap: 12px; }
-        .aws-logo-box {
-            width: 30px; height: 30px; background: var(--orange);
-            border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .aws-nav-service-name { font-size: 0.92rem; font-weight: 700; color: #fff; }
-        .aws-nav-divider { width: 1px; height: 20px; background: var(--border); }
-        .aws-nav-links { display: flex; gap: 4px; }
-        .aws-nav-link {
-            text-decoration: none; color: var(--text-muted);
-            font-size: 0.82rem; font-weight: 500; padding: 4px 10px; border-radius: 4px; transition: all 0.15s;
-        }
-        .aws-nav-link:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-        .aws-nav-link.active { color: #fff; background: rgba(255,255,255,0.08); }
-        .aws-nav-right { display: flex; align-items: center; gap: 16px; }
-        .aws-nav-region { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
-
-        /* ── Page Layout ── */
-        .page-content { flex: 1; padding: 20px 24px 40px; max-width: 1300px; width: 100%; margin: 0 auto; }
-
-        /* ── Breadcrumbs ── */
-        .breadcrumbs {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;
-        }
-        .breadcrumbs a { text-decoration: none; color: var(--text-muted); transition: 0.15s; }
-        .breadcrumbs a:hover { color: var(--text); }
-
-        /* ── Service Header ── */
-        .service-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
-        }
-        .service-header-text h1 {
-            font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 8px;
-            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-        }
-        .service-header-text p { font-size: 0.82rem; color: var(--text-muted); font-family: var(--mono); word-break: break-all; }
-
-        .status-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
-            padding: 3px 10px; border-radius: 3px;
-        }
-        .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
-        .status-badge.success { background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2); }
-        .status-badge.success .dot { background: var(--green-light); }
-        .status-badge.failed { background: rgba(217,83,79,0.1); color: var(--red); border: 1px solid rgba(217,83,79,0.2); }
-        .status-badge.failed .dot { background: var(--red); }
-        .status-badge.running { background: rgba(27,132,227,0.1); color: #5eb3f8; border: 1px solid rgba(27,132,227,0.2); }
-        .status-badge.running .dot { background: #5eb3f8; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
-
-        .btn {
-            display: inline-flex; align-items: center; gap: 7px;
-            font-family: var(--sans); font-size: 0.84rem; font-weight: 600;
-            padding: 7px 16px; border-radius: 4px;
-            text-decoration: none; cursor: pointer; transition: all 0.15s; border: none; outline: none;
-        }
-        .btn-secondary { background: #2e353e; border: 1.5px solid #545b64; color: #eaeded; }
-        .btn-secondary:hover { background: #3c444f; border-color: #879596; }
-
-        /* ── CloudWatch-style Terminal ── */
-        .log-container {
-            background: var(--terminal-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .log-toolbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 16px;
-            background: var(--panel-alt);
-            border-bottom: 1px solid var(--border);
-        }
-        .log-toolbar-left { display: flex; align-items: center; gap: 10px; }
-        .log-toolbar-title { font-size: 0.85rem; font-weight: 700; color: #ffffff; }
-        .log-live-badge {
-            font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-            padding: 2px 8px; border-radius: 2px;
-            background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2);
-        }
-        .log-toolbar-actions { display: flex; align-items: center; gap: 8px; }
-        .log-btn {
-            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-            color: var(--text-muted); font-family: var(--sans); font-size: 0.75rem;
-            padding: 4px 12px; border-radius: 3px; cursor: pointer; transition: 0.15s;
-        }
-        .log-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-
-        /* Line numbers + log body */
-        .log-body {
+        
+        .viewer-log-header {
+            background-color: #202124;
+            padding: 14px 20px;
             display: flex;
-            font-family: var(--mono);
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        .viewer-log-title {
+            color: #FFFFFF;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .viewer-log-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .viewer-terminal-body {
+            display: flex;
+            background-color: #171717;
+            font-family: var(--font-mono);
             font-size: 0.8rem;
             line-height: 1.65;
-            color: #e2e8f0;
-            overflow-x: auto;
-            min-height: 400px;
-            max-height: 72vh;
+            color: #F1F3F4;
+            height: 550px;
             overflow-y: auto;
+            scroll-behavior: smooth;
         }
-
-        .log-line-nums {
-            min-width: 50px;
+        
+        .viewer-line-nums {
+            min-width: 54px;
             padding: 16px 10px 16px 16px;
             text-align: right;
-            color: #404a56;
+            color: #5F6368;
             user-select: none;
-            border-right: 1px solid var(--border);
-            background: rgba(0,0,0,0.2);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.15);
             flex-shrink: 0;
         }
-        .log-line-num { display: block; }
-
-        .log-lines { padding: 16px 20px; flex: 1; white-space: pre-wrap; word-break: break-all; }
-        .log-line { display: block; }
-        .log-line.error { color: #f28b82; background: rgba(217,83,79,0.06); border-left: 3px solid var(--red); padding-left: 6px; margin-left: -6px; }
-        .log-line.success { color: var(--green-light); font-weight: 600; }
-        .log-line.system { color: #93c5fd; }
-        .log-line.warning { color: var(--orange); }
-
-        /* Scrollbars */
-        .log-body::-webkit-scrollbar { width: 8px; height: 8px; }
-        .log-body::-webkit-scrollbar-track { background: var(--terminal-bg); }
-        .log-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-        .log-body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
-
-        /* Footer */
-        .page-footer {
-            border-top: 1px solid var(--border); padding: 14px 24px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--nav-bg);
+        
+        .viewer-line-num {
+            display: block;
         }
-        .page-footer span { font-size: 0.74rem; color: var(--text-muted); }
-
-        /* Mobile */
+        
+        .viewer-lines {
+            padding: 16px 20px;
+            flex-grow: 1;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .viewer-line {
+            display: block;
+        }
+        
+        .viewer-line.system {
+            color: #8AB4F8;
+        }
+        
+        .viewer-line.success {
+            color: #81C995;
+            font-weight: 600;
+        }
+        
+        .viewer-line.warning {
+            color: #FDD663;
+        }
+        
+        .viewer-line.error {
+            color: #F28B82;
+            border-left: 3px solid #EE675C;
+            padding-left: 6px;
+            margin-left: -6px;
+        }
+        
         @media (max-width: 600px) {
-            .aws-navbar { padding: 0 12px; }
-            .aws-nav-links, .aws-nav-region { display: none; }
-            .page-content { padding: 12px 10px 28px; }
-            .service-header { flex-direction: column; }
-            .log-line-nums { min-width: 36px; padding: 12px 6px 12px 10px; }
+            .log-details-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .viewer-line-nums {
+                min-width: 36px;
+                padding: 12px 6px 12px 10px;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- AWS Top Navbar -->
-<nav class="aws-navbar">
-    <div class="aws-nav-left">
-        <div class="aws-logo-box">
-            <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
-        </div>
-        <span class="aws-nav-service-name">Kuttans App Builder</span>
-        <div class="aws-nav-divider"></div>
-        <nav class="aws-nav-links">
-            <a href="/" class="aws-nav-link">Build</a>
-            <a href="/dev/logs" class="aws-nav-link active">Developer Logs</a>
-        </nav>
-    </div>
-    <div class="aws-nav-right">
-        <div class="aws-nav-region">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <span>ap-south-1</span>
-        </div>
-    </div>
-</nav>
-
-<div class="page-content">
-
-    <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
-        <a href="/">Kuttans App Builder</a>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        <a href="/dev/logs">Developer Logs</a>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        <span>{{ build_id }}</span>
-    </div>
-
-    <!-- Service Header -->
-    <div class="service-header">
-        <div class="service-header-text">
-            <h1>
-                Build Log
-                {% if status.startswith('SUCCESS') %}
-                    <span class="status-badge success"><span class="dot"></span>Succeeded</span>
-                {% elif status.startswith('FAILED') %}
-                    <span class="status-badge failed"><span class="dot"></span>Failed</span>
-                {% elif status == 'RUNNING' %}
-                    <span class="status-badge running"><span class="dot"></span>Running</span>
-                {% else %}
-                    <span class="status-badge"><span class="dot"></span>{{ status }}</span>
-                {% endif %}
-            </h1>
-            <p>Build ID: {{ build_id }}</p>
-        </div>
+    <!-- Main Outer Container -->
+    <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
-            <a href="/dev/logs" class="btn btn-secondary">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                Back to Logs
-            </a>
+            <!-- Top Google App Bar -->
+            <header class="google-app-bar">
+                <div class="bar-left">
+                    <div class="product-logo" onclick="window.location.href='/'" style="cursor: pointer;">
+                        <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
+                    </div>
+                    <span class="product-title" onclick="window.location.href='/'" style="cursor: pointer;">APK Builder</span>
+                    <span class="beta-badge">BETA</span>
+                </div>
+                <div class="bar-right">
+                    <!-- Notifications Bell -->
+                    <button type="button" class="icon-btn" id="notification-btn" onclick="toggleNotifications()" title="System Update History">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div id="notification-dropdown" class="notification-dropdown-google" style="display: none;">
+                        <div class="dropdown-header">
+                            System Update History
+                        </div>
+                        <div id="notification-content" class="dropdown-content">
+                            <div class="spinner" style="display:block; margin: 0 auto; width:16px; height:16px; border-width: 2px; border-top-color: #1A73E8;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Globe Icon (navigates to Developer Tools / Logs) -->
+                    <button type="button" class="icon-btn" title="Developer Tools / Logs" onclick="window.location.href='/dev/logs'">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/>
+                        </svg>
+                    </button>
+
+                    <!-- User Profile -->
+                    <button type="button" class="icon-btn user-avatar-btn" title="User Profile" onclick="showProfileAlert()">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </button>
+
+                    <!-- Clear Data Action -->
+                    <button type="button" onclick="confirmClearAllData()" class="clear-data-action" title="Clear Server Session">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                        <span>Clear Session</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Page Workspace Content -->
+            <main class="main-container">
+                <!-- Breadcrumbs -->
+                <div class="breadcrumbs" style="display: flex; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; align-items: center;">
+                    <a href="/" style="text-decoration: none; color: var(--primary);">Console Home</a>
+                    <span>&rsaquo;</span>
+                    <a href="/dev/logs" style="text-decoration: none; color: var(--primary);">Developer Logs</a>
+                    <span>&rsaquo;</span>
+                    <span>{{ build_id }}</span>
+                </div>
+
+                <!-- Header Details -->
+                <div class="service-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+                            <h1 style="font-size: 1.75rem; font-weight: 500; color: var(--text-primary);">Build Log Details</h1>
+                            {% if status.startswith('SUCCESS') %}
+                                <span class="status-chip success">Success</span>
+                            {% elif status.startswith('FAILED') %}
+                                <span class="status-chip failed">Failed</span>
+                            {% elif status == 'RUNNING' %}
+                                <span class="status-chip running">Running</span>
+                            {% else %}
+                                <span class="status-chip queued">{{ status }}</span>
+                            {% endif %}
+                        </div>
+                        <p style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.85rem;">Job ID: {{ build_id }}</p>
+                    </div>
+                    <div>
+                        <a href="/dev/logs" class="nav-text-btn" style="display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; font-size: 0.82rem; text-decoration: none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="transform: rotate(180deg);"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                            Back to Logs
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Build Information Summary Card -->
+                <div class="google-card log-details-card">
+                    <div class="log-details-grid">
+                        <div class="log-detail-item">
+                            <span class="log-detail-label">Status Description</span>
+                            <span class="log-detail-value">{{ status }}</span>
+                        </div>
+                        <div class="log-detail-item">
+                            <span class="log-detail-label">Pipeline Action</span>
+                            <span class="log-detail-value">Gradle Compilation Sandbox</span>
+                        </div>
+                        <div class="log-detail-item">
+                            <span class="log-detail-label">Execution Server</span>
+                            <span class="log-detail-value">Isolated Cloud Instance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Output Terminal Card -->
+                <div class="google-card viewer-log-card">
+                    <div class="viewer-log-header">
+                        <div class="viewer-log-title">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 12H4v-2h8v2zm8-4H4V8h16v4z"/></svg>
+                            <span>Raw Console Logs</span>
+                        </div>
+                        <div class="viewer-log-actions">
+                            <button class="log-action-btn" onclick="copyLog()" title="Copy logs output to clipboard">Copy Logs</button>
+                            <button class="log-action-btn" onclick="scrollToBottom()" title="Jump to bottom lines">↓ Scroll End</button>
+                        </div>
+                    </div>
+                    
+                    <div class="viewer-terminal-body" id="log-body">
+                        <div class="viewer-line-nums" id="line-nums" aria-hidden="true"></div>
+                        <div class="viewer-lines" id="log-lines"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Premium Footer -->
+        <footer class="google-footer">
+            <div class="footer-links">
+                <a href="javascript:void(0)" onclick="openModal('privacy-modal')">Privacy</a>
+                <a href="javascript:void(0)" onclick="openModal('terms-modal')">Terms</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal-overlay" onclick="closeModal('privacy-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="modal-close-btn" onclick="closeModal('privacy-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Data Isolation & Privacy</h3>
+                <p>All compilation builds run inside isolated sandboxed containers on our cloud server. Your source code and access keys are kept secure and separate from other operations.</p>
+                
+                <h3>Automatic Data Deletion</h3>
+                <p>Your uploaded ZIP archives, cloned Git repositories, compilation log outputs, and generated APK files are hosted temporarily on the server and are automatically and permanently deleted <strong>5 hours</strong> after creation.</p>
+                
+                <h3>No Personal Tracking</h3>
+                <p>We do not collect or log personal user details, IP addresses, or project data beyond the active lifecycle of your build compilation.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('privacy-modal')">Close</button>
+            </div>
         </div>
     </div>
 
-    <!-- CloudWatch-style Log Viewer -->
-    <div class="log-container">
-        <div class="log-toolbar">
-            <div class="log-toolbar-left">
-                <span class="log-toolbar-title">Log Output</span>
-                <span class="log-live-badge">Stored</span>
+    <!-- Terms & Conditions Modal -->
+    <div id="terms-modal" class="modal-overlay" onclick="closeModal('terms-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Terms and Conditions</h2>
+                <button class="modal-close-btn" onclick="closeModal('terms-modal')">&times;</button>
             </div>
-            <div class="log-toolbar-actions">
-                <button class="log-btn" onclick="copyLog()">Copy All</button>
-                <button class="log-btn" onclick="scrollToBottom()">↓ End</button>
+            <div class="modal-body">
+                <h3>Usage Policy</h3>
+                <p>This application is provided as-is for development and debugging purposes. We do not guarantee compilation uptime or build success rates.</p>
+                
+                <h3>Liability Limits</h3>
+                <p>We are not liable for any data loss, compilation issues, project corruption, or server downtime experienced while using the service.</p>
+                
+                <h3>Acceptable Use</h3>
+                <p>You agree not to use this builder to compile malicious software, trojans, adware, or tools designed for coordinated cyber threats. Abuse will result in access blocks.</p>
             </div>
-        </div>
-        <div class="log-body" id="log-body">
-            <div class="log-line-nums" id="line-nums" aria-hidden="true"></div>
-            <div class="log-lines" id="log-lines"></div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('terms-modal')">Close</button>
+            </div>
         </div>
     </div>
 
-</div>
-
-<!-- Footer -->
-<footer class="page-footer">
-    <span>Kuttans App Builder &mdash; Developer Tools</span>
-    <span>Region: ap-south-1</span>
-</footer>
-
-<script>
-    const rawContent = {{ content | tojson }};
-    const lines = rawContent.split('\n');
-    const lineNumsEl = document.getElementById('line-nums');
-    const logLinesEl = document.getElementById('log-lines');
-
-    lines.forEach((line, i) => {
-        // Line number
-        const numSpan = document.createElement('span');
-        numSpan.className = 'log-line-num';
-        numSpan.textContent = i + 1;
-        lineNumsEl.appendChild(numSpan);
-
-        // Log line with colour classification
-        const lineDiv = document.createElement('span');
-        lineDiv.className = 'log-line';
-        if (line.includes('BUILD FAILED') || line.includes('[ERROR]') || line.includes('Reason:')) {
-            lineDiv.classList.add('error');
-        } else if (line.includes('BUILD SUCCESSFUL') || line.includes('APK generated')) {
-            lineDiv.classList.add('success');
-        } else if (line.includes('[SYSTEM]')) {
-            lineDiv.classList.add('system');
-        } else if (line.includes('[WARNING]')) {
-            lineDiv.classList.add('warning');
+    <!-- Custom Script File -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <script>
+        const rawContent = {{ content | tojson }};
+        const lines = rawContent.split('\n');
+        const lineNumsEl = document.getElementById('line-nums');
+        const logLinesEl = document.getElementById('log-lines');
+    
+        lines.forEach((line, i) => {
+            // Line number
+            const numSpan = document.createElement('span');
+            numSpan.className = 'viewer-line-num';
+            numSpan.textContent = i + 1;
+            lineNumsEl.appendChild(numSpan);
+    
+            // Log line with colour classification
+            const lineSpan = document.createElement('span');
+            lineSpan.className = 'viewer-line';
+            
+            if (line.includes('BUILD FAILED') || line.includes('[ERROR]') || line.includes('Reason:')) {
+                lineSpan.classList.add('error');
+            } else if (line.includes('BUILD SUCCESSFUL') || line.includes('APK generated')) {
+                lineSpan.classList.add('success');
+            } else if (line.includes('[SYSTEM]')) {
+                lineSpan.classList.add('system');
+            } else if (line.includes('[WARNING]')) {
+                lineSpan.classList.add('warning');
+            }
+            
+            lineSpan.textContent = line;
+            logLinesEl.appendChild(lineSpan);
+        });
+    
+        function scrollToBottom() {
+            const body = document.getElementById('log-body');
+            if (body) body.scrollTop = body.scrollHeight;
         }
-        lineDiv.textContent = line;
-        logLinesEl.appendChild(lineDiv);
-    });
-
-    function scrollToBottom() {
-        const body = document.getElementById('log-body');
-        body.scrollTop = body.scrollHeight;
-    }
-    function copyLog() {
-        navigator.clipboard.writeText(rawContent).then(() => alert('Log copied to clipboard!'));
-    }
-
-    // Auto-scroll to bottom on load
-    scrollToBottom();
-</script>
+        
+        function copyLog() {
+            navigator.clipboard.writeText(rawContent)
+                .then(() => alert('Logs copied to clipboard!'))
+                .catch(err => console.error("Failed to copy:", err));
+        }
+    
+        // Auto-scroll to bottom on load
+        scrollToBottom();
+    </script>
 </body>
 </html>

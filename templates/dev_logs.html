@@ -3,420 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Logs | Kuttans App Builder</title>
+    <title>Developer Logs | APK Builder</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Roboto:wght@400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg: #0f141c;
-            --nav-bg: #16191f;
-            --panel: #16191f;
-            --panel-alt: #1e252e;
-            --border: #2e353e;
-            --border-light: #3d4a56;
-            --orange: #ec7211;
-            --orange-dark: #c95f0c;
-            --blue: #1b84e3;
-            --green: #1f8a70;
-            --green-light: #3fcf8e;
-            --red: #d9534f;
-            --yellow: #f0ad4e;
-            --text: #f1f3f3;
-            --text-dim: #cbd5e1;
-            --text-muted: #879596;
-            --mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        /* Specific Styles for Log Dashboard Table */
+        .logs-table-card {
+            margin-top: 24px;
+            overflow: hidden;
+            padding: 0;
         }
-
-        body {
-            font-family: var(--sans);
-            background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+        
+        .table-toolbar-google {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
         }
-
-        /* ── AWS Top Navbar ── */
-        .aws-navbar {
-            background-color: var(--nav-bg);
-            border-bottom: 1px solid var(--border);
+        
+        .table-toolbar-title-group {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            height: 48px;
-            flex-shrink: 0;
+            gap: 12px;
         }
-
-        .aws-nav-left { display: flex; align-items: center; gap: 12px; }
-
-        .aws-logo-box {
-            width: 30px; height: 30px;
-            background: var(--orange);
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
+        
+        .table-toolbar-title-group h3 {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--text-primary);
         }
-
-        .aws-nav-service-name {
-            font-size: 0.92rem; font-weight: 700; color: #ffffff; white-space: nowrap;
+        
+        .table-count-badge {
+            background: #E8F0FE;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
         }
-
-        .aws-nav-divider {
-            width: 1px; height: 20px; background: var(--border); flex-shrink: 0;
+        
+        .logs-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
         }
-
-        .aws-nav-links { display: flex; gap: 4px; }
-
-        .aws-nav-link {
-            text-decoration: none; color: var(--text-muted);
-            font-size: 0.82rem; font-weight: 500;
-            padding: 4px 10px; border-radius: 4px;
-            transition: all 0.15s;
+        
+        .google-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
         }
-        .aws-nav-link:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-        .aws-nav-link.active { color: #ffffff; background: rgba(255,255,255,0.08); }
-
-        .aws-nav-right { display: flex; align-items: center; gap: 16px; }
-
-        .aws-nav-region {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 0.8rem; color: var(--text-muted); cursor: pointer;
+        
+        .google-table th {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #F8F9FA;
         }
-        .aws-nav-region:hover { color: var(--text); }
-
-        /* ── Page Layout ── */
-        .page-content { flex: 1; padding: 20px 24px 40px; max-width: 1200px; width: 100%; margin: 0 auto; }
-
-        /* ── Breadcrumbs ── */
-        .breadcrumbs {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;
+        
+        .google-table td {
+            font-size: 0.88rem;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
-        .breadcrumbs a { text-decoration: none; color: var(--text-muted); transition: 0.15s; }
-        .breadcrumbs a:hover { color: var(--text); }
-        .breadcrumbs svg { flex-shrink: 0; }
-
-        /* ── Service Header ── */
-        .service-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 20px; gap: 16px;
+        
+        .google-table tr:last-child td {
+            border-bottom: none;
         }
-        .service-header-text h1 {
-            font-size: 1.45rem; font-weight: 700; color: #ffffff; margin-bottom: 4px;
+        
+        .google-table tbody tr:hover td {
+            background-color: rgba(60,64,67,0.02);
         }
-        .service-header-text p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; }
-
-        .header-btn-group { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
-
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-            font-family: var(--sans); font-size: 0.84rem; font-weight: 600;
-            padding: 7px 16px; border-radius: 4px;
-            text-decoration: none; cursor: pointer;
-            transition: all 0.15s; border: none; outline: none;
+        
+        .col-build-hash {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            color: var(--primary);
+            text-decoration: none;
         }
-        .btn-secondary {
-            background: #2e353e; border: 1.5px solid #545b64; color: #eaeded;
+        
+        .col-build-hash:hover {
+            text-decoration: underline;
         }
-        .btn-secondary:hover { background: #3c444f; border-color: #879596; }
-        .btn-danger {
-            background: rgba(217, 83, 79, 0.08); border: 1.5px solid rgba(217,83,79,0.25);
-            color: var(--red);
+        
+        .col-time-stamp {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
         }
-        .btn-danger:hover { background: rgba(217,83,79,0.18); border-color: var(--red); }
-
-        /* ── Stats Row ── */
-        .stats-row {
-            display: flex; gap: 16px; margin-bottom: 20px;
+        
+        .action-arrow-link {
+            text-decoration: none;
+            font-weight: 500;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
         }
-        .stat-card {
-            flex: 1; background: var(--panel); border: 1px solid var(--border);
-            border-radius: 6px; padding: 14px 18px;
+        
+        .action-arrow-link:hover {
+            color: var(--primary-hover);
         }
-        .stat-card .stat-label {
-            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;
+        
+        /* Stats counters styles */
+        .logs-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
         }
-        .stat-card .stat-value {
-            font-size: 1.6rem; font-weight: 700; color: #ffffff;
+        
+        .log-stat-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
         }
-        .stat-card .stat-sub {
-            font-size: 0.74rem; color: var(--text-muted); margin-top: 3px;
+        
+        .log-stat-card-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
         }
-
-        /* ── AWS Table ── */
-        .table-container {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
+        
+        .log-stat-card-value {
+            font-size: 1.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.2;
         }
-
-        .table-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
+        
+        .log-stat-card-sub {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
-        .table-toolbar-left { display: flex; align-items: center; gap: 12px; }
-        .table-title {
-            font-size: 0.96rem; font-weight: 700; color: #ffffff;
+        
+        @media (max-width: 900px) {
+            .logs-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
-        .table-count {
-            font-size: 0.75rem; color: var(--text-muted);
-            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-            padding: 2px 8px; border-radius: 10px;
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        thead tr { background: var(--panel-alt); }
-
-        th {
-            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.5px; color: var(--text-muted);
-            padding: 10px 18px;
-            border-bottom: 1px solid var(--border);
-            text-align: left; white-space: nowrap;
-        }
-
-        td {
-            padding: 13px 18px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.86rem; color: var(--text-dim);
-        }
-
-        tr:last-child td { border-bottom: none; }
-
-        tbody tr:hover td { background: rgba(255,255,255,0.02); }
-
-        .col-build-id {
-            font-family: var(--mono); color: var(--orange);
-            font-size: 0.8rem; font-weight: 600;
-            letter-spacing: -0.2px;
-        }
-        .col-build-id a {
-            text-decoration: none; color: inherit;
-        }
-        .col-build-id a:hover { text-decoration: underline; }
-
-        .col-time { color: var(--text-dim); font-size: 0.83rem; }
-
-        /* Status Pills */
-        .status-pill {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 3px 10px; border-radius: 3px;
-            font-size: 0.73rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
-        }
-        .status-dot { width: 7px; height: 7px; border-radius: 50%; }
-
-        .status-pill.success {
-            background: rgba(31,138,112,0.12); color: var(--green-light); border: 1px solid rgba(31,138,112,0.2);
-        }
-        .status-pill.success .status-dot { background: var(--green-light); }
-
-        .status-pill.failed {
-            background: rgba(217,83,79,0.1); color: var(--red); border: 1px solid rgba(217,83,79,0.2);
-        }
-        .status-pill.failed .status-dot { background: var(--red); }
-
-        .status-pill.running {
-            background: rgba(27,132,227,0.1); color: #5eb3f8; border: 1px solid rgba(27,132,227,0.2);
-        }
-        .status-pill.running .status-dot { background: #5eb3f8; animation: pulse 1s infinite; }
-
-        .status-pill.unknown {
-            background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--border);
-        }
-        .status-pill.unknown .status-dot { background: var(--text-muted); }
-
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-        /* View Logs Link */
-        .view-link {
-            color: var(--orange); text-decoration: none; font-size: 0.83rem; font-weight: 600;
-        }
-        .view-link:hover { text-decoration: underline; }
-
-        /* Empty State */
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 64px 24px; gap: 14px;
-        }
-        .empty-icon { opacity: 0.2; }
-        .empty-state h3 { font-size: 1rem; font-weight: 700; color: #ffffff; }
-        .empty-state p { font-size: 0.83rem; color: var(--text-muted); text-align: center; max-width: 340px; line-height: 1.5; }
-
-        /* Footer */
-        .page-footer {
-            border-top: 1px solid var(--border); padding: 14px 24px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--nav-bg);
-        }
-        .page-footer span { font-size: 0.74rem; color: var(--text-muted); }
-
-        /* Mobile */
-        @media (max-width: 700px) {
-            .aws-navbar { padding: 0 12px; }
-            .aws-nav-links, .aws-nav-region { display: none; }
-            .page-content { padding: 14px 12px 32px; }
-            .stats-row { flex-direction: column; }
-            .service-header { flex-direction: column; }
-            .table-container { overflow-x: auto; }
-            th, td { padding: 10px 12px; }
+        
+        @media (max-width: 500px) {
+            .logs-stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- AWS Top Navbar -->
-<nav class="aws-navbar">
-    <div class="aws-nav-left">
-        <div class="aws-logo-box">
-            <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
-        </div>
-        <span class="aws-nav-service-name">Kuttans App Builder</span>
-        <div class="aws-nav-divider"></div>
-        <nav class="aws-nav-links">
-            <a href="/" class="aws-nav-link">Build</a>
-            <a href="/dev/logs" class="aws-nav-link active">Developer Logs</a>
-        </nav>
-    </div>
-    <div class="aws-nav-right">
-        <div class="aws-nav-region">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-            </svg>
-            <span>ap-south-1</span>
-        </div>
-    </div>
-</nav>
+    <!-- Main Outer Container -->
+    <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <!-- Top Google App Bar -->
+            <header class="google-app-bar">
+                <div class="bar-left">
+                    <div class="product-logo" onclick="window.location.href='/'" style="cursor: pointer;">
+                        <img src="/static/img/kuttans_logo.png" alt="Kuttans Logo" width="28" height="28" style="border-radius:4px;display:block;">
+                    </div>
+                    <span class="product-title" onclick="window.location.href='/'" style="cursor: pointer;">APK Builder</span>
+                    <span class="beta-badge">BETA</span>
+                </div>
+                <div class="bar-right">
+                    <!-- Notifications Bell -->
+                    <button type="button" class="icon-btn" id="notification-btn" onclick="toggleNotifications()" title="System Update History">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div id="notification-dropdown" class="notification-dropdown-google" style="display: none;">
+                        <div class="dropdown-header">
+                            System Update History
+                        </div>
+                        <div id="notification-content" class="dropdown-content">
+                            <div class="spinner" style="display:block; margin: 0 auto; width:16px; height:16px; border-width: 2px; border-top-color: #1A73E8;"></div>
+                        </div>
+                    </div>
 
-<div class="page-content">
+                    <!-- Globe Icon (navigates to Developer Tools / Logs) -->
+                    <button type="button" class="icon-btn" title="Developer Tools / Logs" onclick="window.location.href='/dev/logs'">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/>
+                        </svg>
+                    </button>
 
-    <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
-        <a href="/">Console Home</a>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        <a href="/">Kuttans App Builder</a>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        <span>Developer Logs</span>
-    </div>
+                    <!-- User Profile -->
+                    <button type="button" class="icon-btn user-avatar-btn" title="User Profile" onclick="showProfileAlert()">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </button>
 
-    <!-- Service Header -->
-    <div class="service-header">
-        <div class="service-header-text">
-            <h1>Developer Logs</h1>
-            <p>Detailed build pipeline logs for every APK compilation job. Use this view to debug failing builds and monitor execution history.</p>
-        </div>
-        <div class="header-btn-group">
-            <a href="/" class="btn btn-secondary">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                Back to Console
-            </a>
-            {% if builds %}
-            <form action="/dev/logs/clear" method="POST" onsubmit="return confirm('Clear all build logs from history? This cannot be undone.');">
-                <button type="submit" class="btn btn-danger">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                    Clear All Logs
-                </button>
-            </form>
-            {% endif %}
-        </div>
-    </div>
+                    <!-- Clear Data Action -->
+                    <button type="button" onclick="confirmClearAllData()" class="clear-data-action" title="Clear Server Session">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                        <span>Clear Session</span>
+                    </button>
+                </div>
+            </header>
 
-    <!-- Stats Row -->
-    {% if builds %}
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-label">Total Builds</div>
-            <div class="stat-value">{{ builds | length }}</div>
-            <div class="stat-sub">All time in this session</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Successful</div>
-            <div class="stat-value" style="color: #3fcf8e;">{{ success_count }}</div>
-            <div class="stat-sub">Completed without errors</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Failed</div>
-            <div class="stat-value" style="color: #d9534f;">{{ failed_count }}</div>
-            <div class="stat-sub">Stopped with errors</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Running</div>
-            <div class="stat-value" style="color: #5eb3f8;">{{ running_count }}</div>
-            <div class="stat-sub">Currently compiling</div>
-        </div>
-    </div>
-    {% endif %}
+            <!-- Main Page Workspace Content -->
+            <main class="main-container">
+                <!-- Breadcrumbs -->
+                <div class="breadcrumbs" style="display: flex; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; align-items: center;">
+                    <a href="/" style="text-decoration: none; color: var(--primary);">Console Home</a>
+                    <span>&rsaquo;</span>
+                    <span>Developer Logs</span>
+                </div>
 
-    <!-- Table -->
-    <div class="table-container">
-        <div class="table-toolbar">
-            <div class="table-toolbar-left">
-                <span class="table-title">Build History</span>
+                <!-- Header Details -->
+                <div class="service-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <h1 style="font-size: 1.75rem; font-weight: 500; color: var(--text-primary); margin-bottom: 6px;">Developer Logs</h1>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 650px; line-height: 1.5;">
+                            Detailed sandbox logs for every compiled APK build job. Use this view to debug configuration problems, inspect build streams, and monitor compilation history.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <a href="/" class="nav-text-btn" style="display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; font-size: 0.82rem; text-decoration: none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="transform: rotate(180deg);"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                            Back to Console
+                        </a>
+                        {% if builds %}
+                        <form action="/dev/logs/clear" method="POST" onsubmit="return confirm('Clear all build logs from history? This cannot be undone.');" style="display: inline-block;">
+                            <button type="submit" class="google-btn-text-danger" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; border: 1px solid rgba(234,67,37,0.2); border-radius: 20px; font-size: 0.82rem; background: rgba(234,67,37,0.04);">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                Clear All Logs
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Stats Summary Row -->
                 {% if builds %}
-                <span class="table-count">{{ builds | length }} records</span>
+                <div class="logs-stats-grid">
+                    <div class="log-stat-card">
+                        <div class="log-stat-card-label">Total Builds</div>
+                        <div class="log-stat-card-value">{{ builds | length }}</div>
+                        <div class="log-stat-card-sub">All records in this session</div>
+                    </div>
+                    <div class="log-stat-card">
+                        <div class="log-stat-card-label">Successful</div>
+                        <div class="log-stat-card-value" style="color: var(--success);">{{ success_count }}</div>
+                        <div class="log-stat-card-sub">Compiled without errors</div>
+                    </div>
+                    <div class="log-stat-card">
+                        <div class="log-stat-card-label">Failed</div>
+                        <div class="log-stat-card-value" style="color: var(--error);">{{ failed_count }}</div>
+                        <div class="log-stat-card-sub">Stopped with failures</div>
+                    </div>
+                    <div class="log-stat-card">
+                        <div class="log-stat-card-label">Running</div>
+                        <div class="log-stat-card-value" style="color: var(--primary);">{{ running_count }}</div>
+                        <div class="log-stat-card-sub">Jobs currently compiling</div>
+                    </div>
+                </div>
                 {% endif %}
+
+                <!-- Logs Table List Card -->
+                <div class="google-card logs-table-card">
+                    <div class="table-toolbar-google">
+                        <div class="table-toolbar-title-group">
+                            <h3>Build History</h3>
+                            {% if builds %}
+                            <span class="table-count-badge">{{ builds | length }} builds</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="logs-table-wrapper">
+                        {% if builds %}
+                        <table class="google-table">
+                            <thead>
+                                <tr>
+                                    <th>Build ID</th>
+                                    <th>Completed At</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for build in builds %}
+                                <tr>
+                                    <td>
+                                        <a href="/dev/logs/{{ build.build_id }}" class="col-build-hash">{{ build.build_id }}</a>
+                                    </td>
+                                    <td class="col-time-stamp">
+                                        {{ build.modified_at }}
+                                    </td>
+                                    <td>
+                                        {% if build.status.startswith('SUCCESS') %}
+                                            <span class="status-chip success">Success</span>
+                                        {% elif build.status.startswith('FAILED') %}
+                                            <span class="status-chip failed">Failed</span>
+                                        {% elif build.status == 'RUNNING' %}
+                                            <span class="status-chip running">Running</span>
+                                        {% else %}
+                                            <span class="status-chip queued">{{ build.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="/dev/logs/{{ build.build_id }}" class="action-arrow-link">
+                                            <span>View output</span>
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <!-- Empty State View -->
+                        <div style="padding: 64px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                            <div style="width: 56px; height: 56px; border-radius: 50%; background-color: #F1F3F4; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                    <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
+                                </svg>
+                            </div>
+                            <h4 style="font-size: 1.05rem; font-weight: 500; color: var(--text-primary);">No log records yet</h4>
+                            <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 380px; line-height: 1.5; margin: 0 auto 8px;">
+                                Build logs compile history will appear here once you dispatch a project from the build console layout.
+                            </p>
+                            <a href="/" class="google-btn-primary" style="width: auto; padding: 10px 24px; text-decoration: none;">
+                                Return to Builder Console
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Premium Footer -->
+        <footer class="google-footer">
+            <div class="footer-links">
+                <a href="javascript:void(0)" onclick="openModal('privacy-modal')">Privacy</a>
+                <a href="javascript:void(0)" onclick="openModal('terms-modal')">Terms</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal-overlay" onclick="closeModal('privacy-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="modal-close-btn" onclick="closeModal('privacy-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Data Isolation & Privacy</h3>
+                <p>All compilation builds run inside isolated sandboxed containers on our cloud server. Your source code and access keys are kept secure and separate from other operations.</p>
+                
+                <h3>Automatic Data Deletion</h3>
+                <p>Your uploaded ZIP archives, cloned Git repositories, compilation log outputs, and generated APK files are hosted temporarily on the server and are automatically and permanently deleted <strong>5 hours</strong> after creation.</p>
+                
+                <h3>No Personal Tracking</h3>
+                <p>We do not collect or log personal user details, IP addresses, or project data beyond the active lifecycle of your build compilation.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('privacy-modal')">Close</button>
             </div>
         </div>
-
-        {% if builds %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Build ID</th>
-                    <th>Timestamp</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for build in builds %}
-                <tr>
-                    <td class="col-build-id">
-                        <a href="/dev/logs/{{ build.build_id }}">{{ build.build_id }}</a>
-                    </td>
-                    <td class="col-time">{{ build.modified_at }}</td>
-                    <td>
-                        {% if build.status.startswith('SUCCESS') %}
-                            <span class="status-pill success"><span class="status-dot"></span>Succeeded</span>
-                        {% elif build.status.startswith('FAILED') %}
-                            <span class="status-pill failed"><span class="status-dot"></span>Failed</span>
-                        {% elif build.status == 'RUNNING' %}
-                            <span class="status-pill running"><span class="status-dot"></span>Running</span>
-                        {% else %}
-                            <span class="status-pill unknown"><span class="status-dot"></span>{{ build.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="/dev/logs/{{ build.build_id }}" class="view-link">View output →</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="empty-state">
-            <svg class="empty-icon" viewBox="0 0 24 24" width="64" height="64" fill="#879596">
-                <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
-            </svg>
-            <h3>No build logs found</h3>
-            <p>Build logs will appear here when you compile a project on the Build console. Start a new build to generate records.</p>
-            <a href="/" class="btn btn-secondary" style="margin-top:8px;">Go to Build Console</a>
-        </div>
-        {% endif %}
     </div>
 
-</div>
+    <!-- Terms & Conditions Modal -->
+    <div id="terms-modal" class="modal-overlay" onclick="closeModal('terms-modal')">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Terms and Conditions</h2>
+                <button class="modal-close-btn" onclick="closeModal('terms-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Usage Policy</h3>
+                <p>This application is provided as-is for development and debugging purposes. We do not guarantee compilation uptime or build success rates.</p>
+                
+                <h3>Liability Limits</h3>
+                <p>We are not liable for any data loss, compilation issues, project corruption, or server downtime experienced while using the service.</p>
+                
+                <h3>Acceptable Use</h3>
+                <p>You agree not to use this builder to compile malicious software, trojans, adware, or tools designed for coordinated cyber threats. Abuse will result in access blocks.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="google-btn-primary" style="width: auto;" onclick="closeModal('terms-modal')">Close</button>
+            </div>
+        </div>
+    </div>
 
-<!-- Footer -->
-<footer class="page-footer">
-    <span>Kuttans App Builder &mdash; Developer Tools</span>
-    <span>Region: ap-south-1</span>
-</footer>
-
+    <!-- Custom Script File -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
