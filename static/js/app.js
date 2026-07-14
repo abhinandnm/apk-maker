@@ -404,6 +404,13 @@ function submitBuild(event) {
     
     enableSubmitButton(false);
     clearTerminal();
+    
+    // Show animation immediately
+    document.getElementById('tracker-panel').style.display = 'block';
+    document.getElementById('upload-animation').style.display = 'flex';
+    document.getElementById('status-title').innerText = 'Status: Initializing...';
+    document.getElementById('status-percentage').innerText = '0%';
+    
     appendLog("[SYSTEM] Initializing build request...", "system");
     
     const form = document.getElementById('build-form');
