@@ -1253,33 +1253,34 @@ input[type="url"] {
 
 .node-git {
     animation: orbitGit 10s infinite ease-in-out;
-    transform-origin: center;
+    transform-origin: 40px 60px;
 }
 
 .node-cloud {
     animation: orbitCloud 10s infinite ease-in-out;
-    transform-origin: center;
+    transform-origin: 160px 60px;
 }
 
 /* Smiley face expressions display states */
 .node-smiley {
     transform: translate(100px, 60px) scale(1.1);
-    transform-origin: center;
+    transform-origin: 100px 60px;
     transition: all 0.3s ease;
 }
 
 .node-smiley .mouth {
-    display: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
 }
 
 /* Neutral state */
 .node-smiley:not(.happy):not(.sad):not(.running) .mouth-neutral {
-    display: block;
+    opacity: 1;
 }
 
 /* Happy state */
 .node-smiley.happy .mouth-happy {
-    display: block;
+    opacity: 1;
 }
 .node-smiley.happy .smiley-bg {
     fill: #E6F4EA !important;
@@ -1292,7 +1293,7 @@ input[type="url"] {
 
 /* Sad state */
 .node-smiley.sad .mouth-sad {
-    display: block;
+    opacity: 1;
 }
 .node-smiley.sad .smiley-bg {
     fill: #FCE8E6 !important;
@@ -1305,7 +1306,7 @@ input[type="url"] {
 
 /* Running state */
 .node-smiley.running .mouth-running {
-    display: block;
+    opacity: 1;
 }
 .node-smiley.running .smiley-bg {
     fill: #E8F0FE !important;
