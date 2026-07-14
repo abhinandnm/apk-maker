@@ -54,6 +54,31 @@ def read_status(build_id):
         logger.error(f"Failed to read status for build {build_id}: {e}")
         return "UNKNOWN"
 
+def get_build_start_time(build_id):
+    log_path = os.path.join(get_logs_dir(), f"{build_id}.log")
+    if os.path.exists(log_path):
+        try:
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
+                first_line = f.readline() # --- APK BUILD LOGS ...
+                second_line = f.readline() # Timestamp: ...
+                if second_line.startswith("Timestamp: "):
+                    ts_str = second_line.split("Timestamp: ", 1)[1].strip()
+                    if ts_str.endswith("Z"):
+                        ts_str = ts_str[:-1]
+                    if "." in ts_str:
+                        return datetime.fromisoformat(ts_str)
+                    else:
+                        return datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S")
+        except Exception as e:
+            logger.error(f"Failed to parse timestamp from log for {build_id}: {e}")
+            
+    # Fallback to st_ctime or st_mtime
+    try:
+        stat = os.stat(log_path)
+        return datetime.fromtimestamp(getattr(stat, 'st_birthtime', stat.st_mtime))
+    except Exception:
+        return datetime.utcnow()
+
 def build_worker(build_id, source_type, source_value, original_filename):
     """
     Background worker thread running the clone/extraction and Gradle compilation.
@@ -72,14 +97,23 @@ def build_worker(build_id, source_type, source_value, original_filename):
     
     try:
         # Step 1: Clone or extract project
+        from builders.gradle_builder import canceled_builds
         if source_type == "git":
             clone_repo(source_value, temp_working_dir, log_file_path)
+            if build_id in canceled_builds:
+                raise RuntimeError("Build was cancelled by the user.")
         elif source_type == "url_zip":
             from services.project_manager import download_zip_from_url
             download_zip_from_url(source_value, uploaded_zip_path, log_file_path)
+            if build_id in canceled_builds:
+                raise RuntimeError("Build was cancelled by the user.")
             extract_zip(uploaded_zip_path, temp_working_dir, log_file_path)
+            if build_id in canceled_builds:
+                raise RuntimeError("Build was cancelled by the user.")
         elif source_type == "zip":
             extract_zip(source_value, temp_working_dir, log_file_path)
+            if build_id in canceled_builds:
+                raise RuntimeError("Build was cancelled by the user.")
             
         # Step 2: Run Gradle Build
         result = build_project(temp_working_dir, build_id, log_file_path, original_filename)
@@ -191,6 +225,9 @@ def trigger_build():
         return jsonify({"error": "Invalid build source type"}), 400
         
     # Start the worker thread
+    from builders.gradle_builder import active_processes
+    active_processes[build_id] = "STARTING"
+    
     t = threading.Thread(
         target=build_worker,
         args=(build_id, build_type_worker, source_val, original_filename),
@@ -353,8 +390,7 @@ def get_recent_builds():
         build_id = os.path.splitext(filename)[0]
         status = read_status(build_id)
         
-        stat = os.stat(file_path)
-        created_at = datetime.fromtimestamp(stat.st_mtime)
+        created_at = get_build_start_time(build_id)
         
         if status == "RUNNING" or status.startswith("FAILED:"):
             age = now - created_at
@@ -471,3 +507,13 @@ def get_latest_update():
     except Exception as e:
         logger.error(f"Failed to fetch git commit: {e}")
         return jsonify({"status": "error", "message": "Git is not initialized or an error occurred."})
+
+@main_bp.route('/cancel-build/<build_id>', methods=['POST'])
+def cancel_build_route(build_id):
+    from builders.gradle_builder import cancel_build, active_processes
+    if cancel_build(build_id):
+        # We manually write the status to FAILED here to immediately update the frontend
+        write_status(build_id, "FAILED: Build was cancelled by the user.")
+        active_processes.pop(build_id, None)
+        return jsonify({"status": "success", "message": "Build terminated successfully."})
+    return jsonify({"status": "error", "message": "Build not running or not found."}), 404

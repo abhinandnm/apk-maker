@@ -13,6 +13,28 @@ from services.cleaner import add_apk_metadata
 
 logger = logging.getLogger(__name__)
 
+active_processes = {}
+canceled_builds = set()
+
+def cancel_build(build_id):
+    """Forcefully terminates an ongoing build."""
+    canceled_builds.add(build_id)
+    if build_id in active_processes:
+        process = active_processes.get(build_id)
+        if hasattr(process, 'poll') and process.poll() is None:
+            try:
+                import sys
+                import subprocess
+                if sys.platform.startswith('win'):
+                    # Use taskkill /F /T /PID to kill the entire process tree on Windows
+                    subprocess.run(['taskkill', '/F', '/T', '/PID', str(process.pid)], capture_output=True)
+                else:
+                    process.terminate()
+            except Exception as e:
+                logger.error(f"Failed to terminate process for {build_id}: {e}")
+        return True
+    return False
+
 def heal_google_services(project_root, log_file):
     """
     Scans for Firebase Google Services plugin applications and injects a dummy google-services.json if missing.
@@ -208,6 +230,12 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
             log_file.write(f"[SYSTEM] Starting build for ID: {build_id}\n")
             log_file.flush()
             
+            if build_id in canceled_builds:
+                log_file.write("\nBUILD FAILED\n")
+                log_file.write("Reason: Build was cancelled by the user.\n")
+                log_file.flush()
+                raise RuntimeError("Build was cancelled by the user.")
+            
             # 1. Find project root
             project_root = find_project_root(temp_dir)
             if not project_root:
@@ -333,8 +361,16 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
                         env=env,
                         text=True
                     )
+                    active_processes[build_id] = process
                     
                     exit_code = process.wait()
+                    
+                    # Handle intentional cancellation
+                    if build_id in canceled_builds:
+                        log_file.write("\nBUILD FAILED\n")
+                        log_file.write("Reason: Build was cancelled by the user.\n")
+                        log_file.flush()
+                        raise RuntimeError("Build was cancelled by the user.")
                     
                     if exit_code == 0:
                         log_file.write("\nBUILD SUCCESSFUL\n")
@@ -428,6 +464,8 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
             }
             
     finally:
+        active_processes.pop(build_id, None)
+        canceled_builds.discard(build_id)
         # Cleanup temporary files (Delete temporary project directory)
         # Keep only the generated APK
         if temp_dir and os.path.exists(temp_dir):

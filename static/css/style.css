@@ -1350,3 +1350,28 @@ input[type="url"]:focus {
         padding: 6px 10px;
     }
 }
+
+/* Custom Cancel Button inside Tracker Panel */
+.btn-cancel-tracker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(217, 83, 79, 0.08);
+    border: 1px solid rgba(217, 83, 79, 0.22);
+    color: #d9534f;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    width: auto;
+}
+.btn-cancel-tracker:hover {
+    background: rgba(217, 83, 79, 0.18);
+    border-color: #d9534f;
+}
+.btn-cancel-tracker:active {
+    background: rgba(217, 83, 79, 0.25);
+}

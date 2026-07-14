@@ -2,6 +2,7 @@ let buildTimer = null;
 let startTime = 0;
 let eventSource = null;
 let progressVal = 0;
+let currentBuildId = null;
 
 // Switch between Git URL and ZIP file upload
 function switchTab(type) {
@@ -153,10 +154,13 @@ function parseLogForProgress(line) {
 }
 
 // Timer management
-function startTimer() {
-    startTime = Date.now();
+function startTimer(customStartTime) {
+    startTime = customStartTime || Date.now();
     const timerVal = document.getElementById('timer');
-    timerVal.innerText = '0.0s';
+    
+    if (buildTimer) {
+        clearInterval(buildTimer);
+    }
     
     buildTimer = setInterval(() => {
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -219,28 +223,32 @@ function enableSubmitButton(enabled) {
     const btn = document.getElementById('submit-btn');
     const spinner = btn.querySelector('.spinner');
     const btnText = btn.querySelector('span');
+    const cancelBtn = document.getElementById('cancel-build-btn');
     
     if (enabled) {
         btn.removeAttribute('disabled');
         spinner.style.display = 'none';
         btnText.innerText = "Build APK";
+        if (cancelBtn) cancelBtn.style.display = 'none';
     } else {
         btn.setAttribute('disabled', 'disabled');
         spinner.style.display = 'block';
         btnText.innerText = "Compiling...";
+        if (cancelBtn && currentBuildId) cancelBtn.style.display = 'inline-flex';
     }
 }
 
-// Main Submit Form Logic
-function submitBuild(event) {
-    event.preventDefault();
+// Helper to connect log stream, parse progress and manage timer
+function connectLogStream(buildId, createdAt) {
+    if (eventSource) {
+        eventSource.close();
+    }
+    
+    currentBuildId = buildId;
+    window._buildSuccessHandled = false;
     
     // UI resets
-    window._buildSuccessHandled = false;
-    enableSubmitButton(false);
     clearTerminal();
-    appendLog("[SYSTEM] Initializing build request...", "system");
-    
     document.getElementById('success-box').style.display = 'none';
     document.getElementById('tracker-panel').style.display = 'block';
     document.getElementById('status-title').innerText = 'Status: Compiling...';
@@ -249,15 +257,84 @@ function submitBuild(event) {
     document.getElementById('progress-bar').style.background = 'linear-gradient(90deg, var(--color-cyan), var(--color-blue))';
     document.getElementById('current-task').innerText = 'Contacting server...';
     
+    enableSubmitButton(false);
+    
+    // Set up Cancel button in tracker panel
+    const cancelBtn = document.getElementById('cancel-build-btn');
+    if (cancelBtn) {
+        cancelBtn.style.display = 'inline-flex';
+        cancelBtn.onclick = () => cancelBuild(buildId);
+    }
+    
+    // Start or resume timer
+    const startMs = createdAt ? new Date(createdAt).getTime() : Date.now();
+    startTimer(startMs);
+    
+    eventSource = new EventSource(`/stream/${buildId}`);
+    
+    eventSource.onmessage = function(e) {
+        const line = e.data;
+        
+        // Check for end of stream
+        if (line === "[SYSTEM] EOF") {
+            eventSource.close();
+            appendLog("[SYSTEM] Log stream connection closed.", "system");
+            if (!window._buildSuccessHandled) {
+                checkBuildStatus(buildId);
+                enableSubmitButton(true);
+            }
+            return;
+        }
+        
+        // Log classifications for terminal colors
+        let type = '';
+        if (line.includes('BUILD FAILED') || line.includes('[ERROR]') || line.includes('Reason:')) {
+            type = 'error';
+        } 
+        else if (line.includes('BUILD SUCCESSFUL') || line.includes('[SYSTEM] APK generated successfully')) {
+            type = 'success';
+        }
+        else if (line.includes('[SYSTEM]')) {
+            type = 'system';
+        }
+        else if (line.includes('[WARNING]')) {
+            type = 'warning';
+        }
+        
+        appendLog(line, type);
+        parseLogForProgress(line);
+
+        // ── Instant success: stop timer + show download button immediately ──
+        if (line.includes('[SYSTEM] APK generated successfully') || line.includes('[SYSTEM] File:')) {
+            stopTimer();
+            window._buildSuccessHandled = true;
+            enableSubmitButton(true);
+            setTimeout(() => checkBuildStatus(buildId), 800);
+        }
+
+        // Stop timer immediately on failure too
+        if (line.includes('BUILD FAILED') && !line.includes('Running diagnostic')) {
+            stopTimer();
+            enableSubmitButton(true);
+        }
+    };
+    
+    eventSource.onerror = function(err) {
+        console.error("EventSource encountered an error:", err);
+        appendLog("[SYSTEM] Connection interrupted. Reconnecting log stream...", "warning");
+    };
+}
+
+// Main Submit Form Logic
+function submitBuild(event) {
+    event.preventDefault();
+    
+    enableSubmitButton(false);
+    clearTerminal();
+    appendLog("[SYSTEM] Initializing build request...", "system");
+    
     const form = document.getElementById('build-form');
     const formData = new FormData(form);
-    
-    startTimer();
-    
-    // Close existing SSE connections if any
-    if (eventSource) {
-        eventSource.close();
-    }
     
     fetch('/build', {
         method: 'POST',
@@ -272,65 +349,7 @@ function submitBuild(event) {
     .then(data => {
         const buildId = data.build_id;
         appendLog(`[SYSTEM] Server accepted request. Build ID generated: ${buildId}`, "system");
-        
-        // Open SSE log stream connection
-        eventSource = new EventSource(`/stream/${buildId}`);
-        
-        eventSource.onmessage = function(e) {
-            const line = e.data;
-            
-            // Check for end of stream
-            if (line === "[SYSTEM] EOF") {
-                eventSource.close();
-                appendLog("[SYSTEM] Log stream connection closed.", "system");
-                // Only fetch status again if not already handled by success detection
-                if (!window._buildSuccessHandled) {
-                    checkBuildStatus(buildId);
-                    enableSubmitButton(true);
-                }
-                return;
-            }
-            
-            // Log classifications for terminal colors
-            let type = '';
-            if (line.includes('BUILD FAILED') || line.includes('[ERROR]') || line.includes('Reason:')) {
-                type = 'error';
-            } 
-            else if (line.includes('BUILD SUCCESSFUL') || line.includes('[SYSTEM] APK generated successfully')) {
-                type = 'success';
-            }
-            else if (line.includes('[SYSTEM]')) {
-                type = 'system';
-            }
-            else if (line.includes('[WARNING]')) {
-                type = 'warning';
-            }
-            
-            appendLog(line, type);
-            parseLogForProgress(line);
-
-            // ── Instant success: stop timer + show download button immediately ──
-            if (line.includes('[SYSTEM] APK generated successfully') || line.includes('[SYSTEM] File:')) {
-                stopTimer();
-                window._buildSuccessHandled = true;
-                enableSubmitButton(true);
-                // Small delay to let the server finish writing metadata before fetching
-                setTimeout(() => checkBuildStatus(buildId), 800);
-            }
-
-            // Stop timer immediately on failure too
-            if (line.includes('BUILD FAILED') && !line.includes('Running diagnostic')) {
-                stopTimer();
-                enableSubmitButton(true);
-            }
-        };
-        
-        eventSource.onerror = function(err) {
-            console.error("EventSource encountered an error:", err);
-            // Don't close immediately as it automatically tries to reconnect.
-            // But we append a warning
-            appendLog("[SYSTEM] Connection interrupted. Reconnecting log stream...", "warning");
-        };
+        connectLogStream(buildId, null);
     })
     .catch(error => {
         stopTimer();
@@ -338,6 +357,11 @@ function submitBuild(event) {
         document.getElementById('tracker-panel').style.display = 'none';
         appendLog(`[ERROR] Build dispatch failed: ${error.message}`, "error");
     });
+}
+
+function trackBuild(buildId, createdAt) {
+    appendLog(`[SYSTEM] Reconnecting to running build: ${buildId}`, "system");
+    connectLogStream(buildId, createdAt);
 }
 
 // Load recent builds on page initialization and after updates
@@ -359,6 +383,15 @@ function loadRecentBuilds() {
                 const card = document.createElement('div');
                 card.className = 'recent-build-card';
                 
+                if (build.status === 'running') {
+                    card.style.cursor = 'pointer';
+                    card.title = 'Click to view build progress and logs';
+                    card.onclick = (e) => {
+                        if (e.target.closest('button') || e.target.closest('a')) return;
+                        trackBuild(build.build_id, build.created_at);
+                    };
+                }
+                
                 let sizeDisplay = '';
                 if (build.size_bytes) {
                     sizeDisplay = (build.size_bytes / (1024 * 1024)).toFixed(2) + ' MB';
@@ -370,9 +403,12 @@ function loadRecentBuilds() {
                 if (build.status === 'success') {
                     actionHTML = `<a href="/download/${build.apk_id}" class="recent-download-btn" download>Download</a>`;
                 } else if (build.status === 'running') {
-                    actionHTML = `<div style="display:flex; align-items:center; color: var(--color-blue); font-size: 13px;">
-                                    <div class="spinner" style="display:inline-block; width:12px; height:12px; border-width: 2px; border-top-color: var(--color-blue); margin-right: 6px;"></div>
-                                    Building...
+                    actionHTML = `<div style="display:flex; align-items:center; gap: 10px;">
+                                    <div style="display:flex; align-items:center; color: var(--color-blue); font-size: 13px;">
+                                        <div class="spinner" style="display:inline-block; width:12px; height:12px; border-width: 2px; border-top-color: var(--color-blue); margin-right: 6px;"></div>
+                                        Building...
+                                    </div>
+                                    <button type="button" onclick="cancelBuild('${build.build_id}')" style="background:transparent; border:1px solid var(--color-red); color:var(--color-red); border-radius:4px; padding:3px 8px; font-size:11px; cursor:pointer;">Cancel</button>
                                   </div>`;
                 } else {
                     actionHTML = `<span style="color: var(--color-red); font-size: 13px; font-weight: 500;">Failed</span>`;
@@ -424,6 +460,26 @@ function confirmClearAllData() {
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentBuilds();
 });
+
+// Cancel an ongoing build
+function cancelBuild(buildId) {
+    if (!confirm('Are you sure you want to cancel this build?')) return;
+    
+    fetch(`/cancel-build/${buildId}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                appendLog('[SYSTEM] Build was cancelled by user.', 'warning');
+            } else {
+                appendLog(`[SYSTEM] Failed to cancel: ${data.message}`, 'error');
+            }
+            // Refresh the builds list immediately
+            loadRecentBuilds();
+        })
+        .catch(err => {
+            console.error('Cancel failed:', err);
+        });
+}
 
 // Notifications Logic
 function toggleNotifications() {
