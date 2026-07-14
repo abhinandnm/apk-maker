@@ -54,11 +54,7 @@ def stream_logs(build_id):
                             logger.error(f"Error checking status for streaming: {e}")
                     
                     if status == "RUNNING":
-                        from routes.main import active_threads
-                        if build_id not in active_threads:
-                            status = "FAILED: Build failed."
-                            from routes.main import write_status
-                            write_status(build_id, status)
+                        pass
                     
                     if not status.startswith("RUNNING") and status != "UNKNOWN":
                         # Flush any remaining logs that were written just as status was changing
