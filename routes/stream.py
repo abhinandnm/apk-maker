@@ -53,6 +53,13 @@ def stream_logs(build_id):
                         except Exception as e:
                             logger.error(f"Error checking status for streaming: {e}")
                     
+                    if status == "RUNNING":
+                        from routes.main import active_threads
+                        if build_id not in active_threads:
+                            status = "FAILED: Build pipeline was interrupted."
+                            from routes.main import write_status
+                            write_status(build_id, status)
+                    
                     if not status.startswith("RUNNING") and status != "UNKNOWN":
                         # Flush any remaining logs that were written just as status was changing
                         time.sleep(0.2)

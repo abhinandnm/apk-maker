@@ -245,6 +245,10 @@ def trigger_build():
 def check_build_status(build_id):
     status_raw = read_status(build_id)
     
+    if status_raw == "RUNNING" and build_id not in active_threads:
+        status_raw = "FAILED: Build pipeline was interrupted."
+        write_status(build_id, status_raw)
+        
     if status_raw == "RUNNING":
         return jsonify({"status": "running"})
     elif status_raw.startswith("SUCCESS:"):
@@ -390,6 +394,10 @@ def get_recent_builds():
         build_id = os.path.splitext(filename)[0]
         status = read_status(build_id)
         
+        if status == "RUNNING" and build_id not in active_threads:
+            status = "FAILED: Build pipeline was interrupted."
+            write_status(build_id, status)
+            
         created_at = get_build_start_time(build_id)
         
         if status == "RUNNING" or status.startswith("FAILED:"):
