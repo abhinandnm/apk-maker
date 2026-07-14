@@ -70,8 +70,14 @@
             <p>Compile Android source code repositories or ZIP archives directly into debug APKs using an automated cloud pipeline.</p>
         </div>
 
+        <!-- Mobile Layout Selector -->
+        <div class="mobile-layout-tabs">
+            <button class="mobile-tab-btn active" id="m-btn-console" onclick="switchMobileTab('console')">Build Console</button>
+            <button class="mobile-tab-btn" id="m-btn-logs" onclick="switchMobileTab('logs')">Live Compilation Logs</button>
+        </div>
+
         <!-- Main Dashboard -->
-        <main class="dashboard-grid">
+        <main class="dashboard-grid mobile-view-console" id="dashboard-view">
             
             <!-- Left Panel: Configuration & Actions -->
             <section class="panel config-panel">

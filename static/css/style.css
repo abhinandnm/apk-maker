@@ -1377,3 +1377,54 @@ input[type="url"]:focus {
 .btn-cancel-tracker:active {
     background: rgba(217, 83, 79, 0.25);
 }
+
+/* Mobile segment layout tabs */
+.mobile-layout-tabs {
+    display: none;
+    background: #16191f;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px;
+    margin-bottom: 20px;
+    gap: 2px;
+}
+
+@media (max-width: 1024px) {
+    .mobile-layout-tabs {
+        display: flex;
+    }
+    
+    /* When 'console' is active, hide terminal */
+    .mobile-view-console .terminal-panel {
+        display: none !important;
+    }
+    /* When 'logs' is active, hide config-panel */
+    .mobile-view-logs .config-panel {
+        display: none !important;
+    }
+}
+
+.mobile-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.mobile-tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.mobile-tab-btn.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}

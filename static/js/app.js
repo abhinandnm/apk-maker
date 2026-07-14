@@ -200,11 +200,21 @@ function checkBuildStatus(buildId) {
                 
                 document.getElementById('success-box').style.display = 'block';
                 appendLog("[SYSTEM] APK available for download.", "success");
+                
+                if (currentBuildId === buildId) {
+                    sendBrowserNotification(buildId, "Build Successful! 🎉", `APK "${data.filename}" is ready for download.`, true);
+                }
+                
                 loadRecentBuilds();
             } 
             else if (data.status === 'failed') {
                 stopTimer();
                 appendLog(`[SYSTEM] Compilation aborted. Reason: ${data.error}`, "error");
+                
+                if (currentBuildId === buildId) {
+                    sendBrowserNotification(buildId, "Build Failed ❌", `Reason: ${data.error}`, false);
+                }
+                
                 enableSubmitButton(true);
             }
             else if (data.status === 'running') {
@@ -258,6 +268,11 @@ function connectLogStream(buildId, createdAt) {
     document.getElementById('current-task').innerText = 'Contacting server...';
     
     enableSubmitButton(false);
+    
+    // Auto-switch to logs tab on mobile viewports
+    if (window.innerWidth <= 1024) {
+        switchMobileTab('logs');
+    }
     
     // Set up Cancel button in tracker panel
     const cancelBtn = document.getElementById('cancel-build-btn');
@@ -459,6 +474,9 @@ function confirmClearAllData() {
 // Run initial configurations
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentBuilds();
+    if (window.Notification && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
 });
 
 // Cancel an ongoing build
@@ -531,3 +549,105 @@ document.addEventListener('click', function(event) {
         }
     }
 });
+
+// Mobile Layout Tab Switcher
+function switchMobileTab(tab) {
+    const dashboard = document.getElementById('dashboard-view');
+    const btnConsole = document.getElementById('m-btn-console');
+    const btnLogs = document.getElementById('m-btn-logs');
+    
+    if (!dashboard) return;
+    
+    if (tab === 'console') {
+        dashboard.classList.remove('mobile-view-logs');
+        dashboard.classList.add('mobile-view-console');
+        if (btnConsole) btnConsole.classList.add('active');
+        if (btnLogs) btnLogs.classList.remove('active');
+    } else {
+        dashboard.classList.remove('mobile-view-console');
+        dashboard.classList.add('mobile-view-logs');
+        if (btnLogs) btnLogs.classList.add('active');
+        if (btnConsole) btnConsole.classList.remove('active');
+    }
+}
+
+// Synthesize premium notification chime using Web Audio API
+function playChime(isSuccess) {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        
+        if (isSuccess) {
+            // Success: Clean, high-pitched dual tone (C5 to G5)
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, now); // C5
+            osc1.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
+            
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(659.25, now); // E5
+            osc2.frequency.exponentialRampToValueAtTime(987.77, now + 0.15); // B5
+            
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.6);
+            osc2.stop(now + 0.6);
+        } else {
+            // Failure: Low, slightly warning dissonant saw tone
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(185.00, now); // F#3
+            osc.frequency.linearRampToValueAtTime(146.83, now + 0.3); // D3
+            
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+    } catch (e) {
+        console.error("Audio Context playback failed:", e);
+    }
+}
+
+// Track already notified builds in this session to prevent duplicate toasts
+let notifiedBuilds = new Set();
+
+function sendBrowserNotification(buildId, title, body, isSuccess) {
+    if (notifiedBuilds.has(buildId)) return;
+    notifiedBuilds.add(buildId);
+    
+    // Play sound alert
+    playChime(isSuccess);
+    
+    // Trigger Chrome Native Toast Notification
+    if (window.Notification && Notification.permission === "granted") {
+        try {
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/static/img/kuttans_logo.png'
+            });
+            notification.onclick = function() {
+                window.focus();
+                notification.close();
+            };
+        } catch (err) {
+            console.error("Failed to trigger Notification API:", err);
+        }
+    }
+}
