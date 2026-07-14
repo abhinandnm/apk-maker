@@ -345,6 +345,20 @@ function connectLogStream(buildId, createdAt) {
             stopTimer();
             enableSubmitButton(true);
         }
+        
+        // Show user-friendly retry guidance when compilation is interrupted
+        if (line.includes('Build pipeline was interrupted') || line.includes('Compilation aborted')) {
+            appendLog('', '');
+            appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+            appendLog('⚠️  Build pipeline was interrupted by the server.', 'warning');
+            appendLog('   This is usually caused by a stale Gradle Daemon or low server memory.', 'warning');
+            appendLog('', '');
+            appendLog('   ✅  To fix this:', 'system');
+            appendLog('   1. Refresh your browser (F5 or Ctrl+R / Cmd+R)', 'system');
+            appendLog('   2. Then click "Build APK" again to retry the compilation.', 'system');
+            appendLog('   3. If the issue persists, click "Clear Session" in the top navigation bar first.', 'system');
+            appendLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+        }
     };
     
     eventSource.onerror = function(err) {
