@@ -274,6 +274,12 @@ function connectLogStream(buildId, createdAt) {
     document.getElementById('progress-bar').style.background = 'linear-gradient(90deg, var(--color-cyan), var(--color-blue))';
     document.getElementById('current-task').innerText = 'Contacting server...';
     
+    // Smoothly scroll to the smiley face illustration to show state change
+    const heroEl = document.getElementById('hero-illustration');
+    if (heroEl) {
+        heroEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
     enableSubmitButton(false);
     
     // Auto-switch to logs tab on mobile viewports
