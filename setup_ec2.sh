@@ -137,7 +137,7 @@ WorkingDirectory=${APP_DIR}
 Environment="PATH=${APP_DIR}/venv/bin:/opt/gradle/gradle-9.6.1/bin:/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/bin:/usr/local/bin"
 Environment="ANDROID_HOME=${SDK_DIR}"
 Environment="JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64"
-ExecStart=${APP_DIR}/venv/bin/gunicorn -w 2 -b 0.0.0.0:5000 app:app
+ExecStart=${APP_DIR}/venv/bin/gunicorn -w 2 --timeout 3600 -b 0.0.0.0:5000 app:app
 Restart=always
 
 [Install]
