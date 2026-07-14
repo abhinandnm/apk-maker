@@ -116,7 +116,10 @@ def heal_gradle_properties(project_root, log_file):
     props_path = os.path.join(project_root, "gradle.properties")
     lines_to_add = [
         "org.gradle.jvmargs=-Xmx1024m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC",
-        "org.gradle.daemon=false"
+        "org.gradle.daemon=false",
+        "org.gradle.parallel=false",
+        "org.gradle.workers.max=1",
+        "kotlin.compiler.execution.strategy=in-process"
     ]
     
     existing_content = ""
@@ -141,6 +144,15 @@ def heal_gradle_properties(project_root, log_file):
                     needs_update = True
                 if "org.gradle.daemon" not in existing_content:
                     f.write("\norg.gradle.daemon=false\n")
+                    needs_update = True
+                if "org.gradle.parallel" not in existing_content:
+                    f.write("\norg.gradle.parallel=false\n")
+                    needs_update = True
+                if "org.gradle.workers.max" not in existing_content:
+                    f.write("\norg.gradle.workers.max=1\n")
+                    needs_update = True
+                if "kotlin.compiler.execution.strategy" not in existing_content:
+                    f.write("\nkotlin.compiler.execution.strategy=in-process\n")
                     needs_update = True
                     
                 if needs_update:
