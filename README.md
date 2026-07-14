@@ -1,7 +1,7 @@
 # APK Builder Studio - Deployment Guide
-```
-live: https://apk-maker.duckdns.org/
-```
+> **Live Demo**
+> https://apk-maker.duckdns.org/
+
 This guide describes how to install, configure, and run the Personal APK Builder Web Application on an **Ubuntu AWS EC2 server**.
 
 ---
