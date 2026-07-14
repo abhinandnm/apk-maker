@@ -165,10 +165,6 @@ def heal_gradle_properties(project_root, log_file):
         except Exception as e:
             log_file.write(f"[WARNING] Could not overwrite gradle.properties: {e}\n")
         log_file.flush()
-        log_file.flush()
-    except Exception as e:
-        log_file.write(f"[WARNING] Failed to heal gradle.properties: {e}\n")
-        log_file.flush()
 
 def heal_missing_sdk_components(log_content, log_file, sdk_path):
     """
