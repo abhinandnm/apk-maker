@@ -234,3 +234,31 @@ sudo systemctl restart nginx
   ```
 - **Verify Android SDK Installation**:
   Ensure `/usr/lib/android-sdk` has correct read/write permissions for the application user (`ubuntu`).
+
+---
+
+## 8. Memory Management & Swap Configuration (AWS EC2)
+
+Android compilation (especially the heavy Dex merging stage) is extremely resource-intensive. If you run this web application on a smaller EC2 instance (e.g., `t2.micro` or `t3.small` with 1-2GB of RAM), the Linux Out-of-Memory (OOM) killer might forcefully terminate the compile task.
+
+To prevent build interruptions, configure at least **4GB of Swap Space**:
+
+```bash
+# Disable existing swap if necessary
+sudo swapoff /swapfile
+
+# Allocate a 4GB file
+sudo fallocate -l 4G /swapfile
+
+# Adjust permissions
+sudo chmod 600 /swapfile
+
+# Set up swapspace
+sudo mkswap /swapfile
+
+# Turn it on
+sudo swapon /swapfile
+
+# Make it permanent across reboots
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```

@@ -402,7 +402,7 @@ def get_recent_builds():
         
         if status == "RUNNING" or status.startswith("FAILED:"):
             age = now - created_at
-            max_age = timedelta(hours=5)
+            max_age = timedelta(minutes=30)
             if age < max_age:
                 active_builds.append({
                     "build_id": build_id,
@@ -419,12 +419,12 @@ def get_recent_builds():
             created_at = datetime.strptime(created_at_str.replace('Z', ''), "%Y-%m-%dT%H:%M:%S.%f")
             age = now - created_at
             
-            max_age = timedelta(hours=5)
+            max_age = timedelta(minutes=30)
             if age < max_age:
                 remaining = max_age - age
-                hours_rem = int(remaining.total_seconds() // 3600)
-                mins_rem = int((remaining.total_seconds() % 3600) // 60)
-                time_remaining_str = f"{hours_rem}h {mins_rem}m remaining"
+                mins_rem = int(remaining.total_seconds() // 60)
+                secs_rem = int(remaining.total_seconds() % 60)
+                time_remaining_str = f"{mins_rem}m {secs_rem}s remaining"
                 
                 # Check if file actually exists
                 apks_dir = get_apks_dir()

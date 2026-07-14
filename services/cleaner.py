@@ -59,8 +59,8 @@ def add_apk_metadata(apk_id, filename, original_name, size_bytes, build_duration
     
     # Print the specific console messages required by the prompt
     print(f"[INFO] APK generated successfully.")
-    print(f"[INFO] Scheduled automatic deletion in 5 hours.")
-    logger.info(f"APK {apk_id} ({filename}) registered. Scheduled deletion in 5 hours.")
+    print(f"[INFO] Scheduled automatic deletion in 30 minutes.")
+    logger.info(f"APK {apk_id} ({filename}) registered. Scheduled deletion in 30 minutes.")
 
 def get_apk_metadata(apk_id):
     metadata = load_metadata()
@@ -89,13 +89,13 @@ def delete_apk_file_and_metadata(apk_id, metadata=None):
         save_metadata(metadata)
         
         # Print the specific console message required by the prompt
-        print(f"[INFO] APK deleted automatically after 5 hours.")
-        logger.info(f"APK {apk_id} deleted automatically after 5 hours.")
+        print(f"[INFO] APK deleted automatically after 30 minutes.")
+        logger.info(f"APK {apk_id} deleted automatically after 30 minutes.")
         return True
     return False
 
 def clean_expired_apks():
-    """Scan and delete APKs older than 5 hours (18000 seconds)."""
+    """Scan and delete APKs older than 30 minutes (1800 seconds)."""
     metadata = load_metadata()
     now = datetime.utcnow()
     expired_ids = []
@@ -110,7 +110,7 @@ def clean_expired_apks():
             created_at = datetime.strptime(created_at_str.replace('Z', ''), "%Y-%m-%dT%H:%M:%S.%f")
             age = now - created_at
             
-            if age > timedelta(hours=5):
+            if age > timedelta(minutes=30):
                 expired_ids.append(apk_id)
         except Exception as e:
             logger.error(f"Error parsing created_at for {apk_id}: {e}")
