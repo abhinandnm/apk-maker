@@ -359,18 +359,35 @@ function loadRecentBuilds() {
                 const card = document.createElement('div');
                 card.className = 'recent-build-card';
                 
-                const sizeMb = (build.size_bytes / (1024 * 1024)).toFixed(2);
+                let sizeDisplay = '';
+                if (build.size_bytes) {
+                    sizeDisplay = (build.size_bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                } else {
+                    sizeDisplay = 'N/A';
+                }
+                
+                let actionHTML = '';
+                if (build.status === 'success') {
+                    actionHTML = `<a href="/download/${build.apk_id}" class="recent-download-btn" download>Download</a>`;
+                } else if (build.status === 'running') {
+                    actionHTML = `<div style="display:flex; align-items:center; color: var(--color-blue); font-size: 13px;">
+                                    <div class="spinner" style="display:inline-block; width:12px; height:12px; border-width: 2px; border-top-color: var(--color-blue); margin-right: 6px;"></div>
+                                    Building...
+                                  </div>`;
+                } else {
+                    actionHTML = `<span style="color: var(--color-red); font-size: 13px; font-weight: 500;">Failed</span>`;
+                }
                 
                 card.innerHTML = `
                     <div class="build-info">
                         <div class="build-name" title="${build.original_name}">${build.original_name}</div>
                         <div class="build-meta-row">
-                            <span>${sizeMb} MB</span>
+                            <span>${sizeDisplay}</span>
                             <span>•</span>
-                            <span class="build-time-rem">${build.time_remaining}</span>
+                            <span class="build-time-rem" ${build.status === 'failed' ? 'style="color:var(--color-red);"' : ''}>${build.time_remaining}</span>
                         </div>
                     </div>
-                    <a href="/download/${build.apk_id}" class="recent-download-btn" download>Download</a>
+                    ${actionHTML}
                 `;
                 listContainer.appendChild(card);
             });
@@ -406,4 +423,47 @@ function confirmClearAllData() {
 // Run initial configurations
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentBuilds();
+});
+
+// Notifications Logic
+function toggleNotifications() {
+    const dropdown = document.getElementById('notification-dropdown');
+    const content = document.getElementById('notification-content');
+    
+    if (dropdown.style.display === 'none') {
+        dropdown.style.display = 'block';
+        content.innerHTML = '<div class="spinner" style="display:block; margin: 0 auto; width:16px; height:16px; border-width: 2px; border-top-color: var(--color-blue);"></div>';
+        
+        fetch('/latest-update')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    content.innerHTML = `
+                        <div style="margin-bottom: 8px;">
+                            <span style="font-family: monospace; background: #eaeded; padding: 2px 4px; border-radius: 3px; font-weight: bold; color: #545b64;">${data.hash}</span>
+                            <span style="color: #545b64; margin-left: 5px;">${data.time}</span>
+                        </div>
+                        <div style="color: #16191f; line-height: 1.4;">${data.message}</div>
+                    `;
+                } else {
+                    content.innerHTML = `<div style="color: var(--color-red);">${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                content.innerHTML = `<div style="color: var(--color-red);">Failed to load updates.</div>`;
+            });
+    } else {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Close dropdown if clicked outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('notification-dropdown');
+    const btn = document.getElementById('notification-btn');
+    if (dropdown && btn && dropdown.style.display === 'block') {
+        if (!dropdown.contains(event.target) && !btn.contains(event.target)) {
+            dropdown.style.display = 'none';
+        }
+    }
 });

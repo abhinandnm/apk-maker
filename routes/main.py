@@ -338,10 +338,37 @@ def dev_logs_clear():
 def get_recent_builds():
     from datetime import datetime, timedelta
     from services.cleaner import load_metadata
+    import glob
     metadata = load_metadata()
     now = datetime.utcnow()
     
     active_builds = []
+    
+    # 1. Fetch running and failed builds from log files
+    logs_dir = get_logs_dir()
+    log_files = glob.glob(os.path.join(logs_dir, "*.log"))
+    
+    for file_path in log_files:
+        filename = os.path.basename(file_path)
+        build_id = os.path.splitext(filename)[0]
+        status = read_status(build_id)
+        
+        stat = os.stat(file_path)
+        created_at = datetime.fromtimestamp(stat.st_mtime)
+        
+        if status == "RUNNING" or status.startswith("FAILED:"):
+            age = now - created_at
+            max_age = timedelta(hours=5)
+            if age < max_age:
+                active_builds.append({
+                    "build_id": build_id,
+                    "status": "running" if status == "RUNNING" else "failed",
+                    "original_name": f"App Project (Build {build_id[:6]})",
+                    "created_at": created_at.isoformat() + "Z",
+                    "time_remaining": "Currently Compiling..." if status == "RUNNING" else "Build Failed"
+                })
+
+    # 2. Fetch successful completed builds from metadata
     for apk_id, info in metadata.items():
         try:
             created_at_str = info.get("created_at")
@@ -360,6 +387,7 @@ def get_recent_builds():
                 file_path = os.path.join(apks_dir, info["filename"])
                 if os.path.exists(file_path):
                     active_builds.append({
+                        "status": "success",
                         "apk_id": apk_id,
                         "original_name": info.get("original_name", "App Project"),
                         "filename": info["filename"],
@@ -417,3 +445,29 @@ def clear_all_data():
             pass
             
     return jsonify({"status": "success", "message": "All local data has been successfully cleared from the server."})
+
+@main_bp.route('/latest-update')
+def get_latest_update():
+    import subprocess
+    try:
+        # Get the latest commit hash, message, and relative time
+        # Format: Hash|Message|Time
+        result = subprocess.run(
+            ['git', 'log', '-1', '--pretty=format:%h|%s|%ar'],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        parts = result.stdout.strip().split('|', 2)
+        if len(parts) == 3:
+            return jsonify({
+                "status": "success",
+                "hash": parts[0],
+                "message": parts[1],
+                "time": parts[2]
+            })
+        return jsonify({"status": "error", "message": "Could not parse git log"})
+    except Exception as e:
+        logger.error(f"Failed to fetch git commit: {e}")
+        return jsonify({"status": "error", "message": "Git is not initialized or an error occurred."})
