@@ -2,7 +2,6 @@
 
 > **Project Purpose:** This is a personal utility developed to compile AI-generated Android project source files into APKs without requiring a local development PC or Android Studio setup.
 
-**Live:** https://apk-maker.duckdns.org/
 
 
 This guide explains how to install, configure, and deploy **APK Builder Studio** on an **Ubuntu AWS EC2 instance**. After completing these steps, your server will be ready to build Android applications into APK files through the web interface.
