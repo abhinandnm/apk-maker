@@ -1406,3 +1406,8 @@ html, body {
         border-radius: 16px !important;
     }
 }
+
+.dropdown-item-link:hover {
+    background-color: rgba(60, 64, 67, 0.06);
+}
+

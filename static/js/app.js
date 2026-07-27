@@ -553,6 +553,7 @@ function confirmClearAllData() {
 
 // Run initial configurations
 document.addEventListener("DOMContentLoaded", () => {
+    checkLoginStatus();
     loadRecentBuilds();
     if (window.Notification && Notification.permission === "default") {
         Notification.requestPermission();
@@ -667,6 +668,14 @@ document.addEventListener('click', function(event) {
     if (dropdown && btn && dropdown.style.display === 'block') {
         if (!dropdown.contains(event.target) && !btn.contains(event.target)) {
             dropdown.style.display = 'none';
+        }
+    }
+    
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const profileBtn = document.getElementById('profile-avatar-btn');
+    if (profileDropdown && profileBtn && profileDropdown.style.display === 'block') {
+        if (!profileDropdown.contains(event.target) && !profileBtn.contains(event.target)) {
+            profileDropdown.style.display = 'none';
         }
     }
 });
@@ -818,9 +827,105 @@ function downloadLogs() {
     URL.revokeObjectURL(url);
 }
 
-// Show user profile authentication alert
-function showProfileAlert() {
-    alert("Authentication and login credentials coming soon!");
+// Check user authentication status on load
+function checkLoginStatus() {
+    fetch('/auth/me')
+        .then(res => res.json())
+        .then(data => {
+            const loginBtn = document.getElementById('login-trigger-btn');
+            const profileContainer = document.getElementById('profile-dropdown-container');
+            const avatarDisplay = document.getElementById('profile-avatar-display');
+            const dropdownAvatar = document.getElementById('dropdown-user-avatar');
+            const dropdownAvatarFallback = document.getElementById('dropdown-user-avatar-fallback');
+            const dropdownUsername = document.getElementById('dropdown-username');
+            const githubSigninBtn = document.getElementById('github-signin-btn');
+            
+            if (data.logged_in) {
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (profileContainer) profileContainer.style.display = 'block';
+                
+                const initial = data.username ? data.username.charAt(0).toUpperCase() : 'U';
+                if (avatarDisplay) avatarDisplay.innerText = initial;
+                if (dropdownAvatarFallback) dropdownAvatarFallback.innerText = initial;
+                
+                if (data.avatar_url) {
+                    if (dropdownAvatar) {
+                        dropdownAvatar.src = data.avatar_url;
+                        dropdownAvatar.style.display = 'block';
+                    }
+                    if (dropdownAvatarFallback) dropdownAvatarFallback.style.display = 'none';
+                } else {
+                    if (dropdownAvatar) dropdownAvatar.style.display = 'none';
+                    if (dropdownAvatarFallback) dropdownAvatarFallback.style.display = 'flex';
+                }
+                
+                if (dropdownUsername) dropdownUsername.innerText = data.username;
+            } else {
+                if (loginBtn) loginBtn.style.display = 'flex';
+                if (profileContainer) profileContainer.style.display = 'none';
+            }
+            
+            // Disable or alter GitHub login button if OAuth client credentials are not configured on server
+            if (githubSigninBtn) {
+                if (!data.github_configured) {
+                    githubSigninBtn.style.opacity = '0.5';
+                    githubSigninBtn.style.pointerEvents = 'none';
+                    githubSigninBtn.title = "GitHub login not configured on server. Please use Developer Bypass.";
+                    const label = githubSigninBtn.querySelector('span');
+                    if (label) label.innerText = "GitHub OAuth (Not Configured)";
+                } else {
+                    githubSigninBtn.style.opacity = '1';
+                    githubSigninBtn.style.pointerEvents = 'auto';
+                    githubSigninBtn.title = "Sign in using your GitHub account";
+                    const label = githubSigninBtn.querySelector('span');
+                    if (label) label.innerText = "Sign in with GitHub";
+                }
+            }
+        })
+        .catch(err => console.error("Error checking login status:", err));
+}
+
+// Toggle profile dropdown menu
+function toggleProfileDropdown() {
+    const dropdown = document.getElementById('profile-dropdown');
+    if (!dropdown) return;
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+// Trigger Developer Mock Login bypass
+function triggerDevLogin() {
+    fetch('/auth/dev-login', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                closeModal('auth-modal');
+                checkLoginStatus();
+                // Brief timeout to let session save, then reload builds history
+                setTimeout(() => loadRecentBuilds(), 300);
+            } else {
+                alert("Developer Login failed: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error("Developer Login error:", err);
+            alert("Developer Login failed.");
+        });
+}
+
+// Handle session Logout
+function handleLogout() {
+    fetch('/auth/logout', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const dropdown = document.getElementById('profile-dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                checkLoginStatus();
+                // Clear session details and reload empty/guest builds history
+                setTimeout(() => loadRecentBuilds(), 300);
+            }
+        })
+        .catch(err => console.error("Logout error:", err));
 }
 
 // Modal open/close actions
