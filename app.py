@@ -35,8 +35,10 @@ def create_app():
     init_db()
             
     # Register blueprints
+    from routes.auth import auth_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(stream_bp)
+    app.register_blueprint(auth_bp)
     
     # Start the background scheduler for APK deletion (scans every 60 seconds)
     start_cleanup_scheduler(interval_seconds=60)
