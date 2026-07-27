@@ -527,7 +527,7 @@ def build_project(temp_dir, build_id, log_file_path, original_filename="project"
             duration = round(time.time() - start_time, 2)
             
             # Save metadata and print required logs
-            add_apk_metadata(apk_id, apk_dest_filename, original_filename, size_bytes, duration)
+            add_apk_metadata(build_id, apk_id, apk_dest_filename, original_filename, size_bytes, duration)
             
             log_file.write(f"[SYSTEM] APK generated successfully.\n")
             log_file.write(f"[SYSTEM] File: {apk_dest_filename} ({round(size_bytes / (1024*1024), 2)} MB)\n")
