@@ -145,6 +145,12 @@ def build_worker(build_id, source_type, source_value, original_filename):
         except Exception as le:
             logger.error(f"Could not append error to log: {le}")
             
+        from services.db import update_build_failed
+        try:
+            update_build_failed(build_id, str(e))
+        except Exception as dbe:
+            logger.error(f"Failed to update failed build in SQLite: {dbe}")
+            
         write_status(build_id, f"FAILED:{str(e)}")
         
     finally:
@@ -236,6 +242,15 @@ def trigger_build():
         
     else:
         return jsonify({"error": "Invalid build source type"}), 400
+        
+    # Record the build in database
+    from flask import session
+    from services.db import create_build
+    user_id = session.get('user_id')
+    try:
+        create_build(build_id, user_id, build_type_worker, source_val, original_filename)
+    except Exception as dbe:
+        logger.error(f"Failed to record build in SQLite: {dbe}")
         
     # Start the worker thread
     from builders.gradle_builder import active_processes
@@ -392,118 +407,156 @@ def dev_logs_clear():
 
 @main_bp.route('/recent-builds')
 def get_recent_builds():
+    from flask import session
+    from services.db import get_recent_builds as db_get_recent_builds
+    from services.db import update_build_failed, expire_apk
     from datetime import datetime, timedelta
-    from services.cleaner import load_metadata
-    import glob
-    metadata = load_metadata()
-    now = datetime.utcnow()
     
+    user_id = session.get('user_id')
+    db_builds = db_get_recent_builds(user_id=user_id, limit=20)
+    
+    now = datetime.utcnow()
     active_builds = []
     
-    # 1. Fetch running and failed builds from log files
-    logs_dir = get_logs_dir()
-    log_files = glob.glob(os.path.join(logs_dir, "*.log"))
-    
-    for file_path in log_files:
-        filename = os.path.basename(file_path)
-        build_id = os.path.splitext(filename)[0]
-        status = read_status(build_id)
+    for b in db_builds:
+        status_raw = b["status"]
+        build_id = b["build_id"]
         
-        if status == "RUNNING" and build_id not in active_threads:
-            status = "FAILED: Build failed."
-            write_status(build_id, status)
+        # Check if running but thread no longer active
+        if status_raw == "RUNNING" and build_id not in active_threads:
+            status_raw = "FAILED: Build failed."
+            write_status(build_id, status_raw)
+            try:
+                update_build_failed(build_id, "Build failed.")
+            except Exception:
+                pass
+                
+        # Parse created_at
+        created_at_str = b["created_at"]
+        created_at = None
+        if created_at_str:
+            try:
+                # SQLite datetime default format: YYYY-MM-DD HH:MM:SS
+                created_at = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S")
+            except Exception:
+                try:
+                    created_at = datetime.fromisoformat(created_at_str.replace('Z', ''))
+                except Exception:
+                    pass
+                    
+        if not created_at:
+            created_at = now
             
-        created_at = get_build_start_time(build_id)
+        age = now - created_at
+        max_age = timedelta(minutes=30)
         
-        if status == "RUNNING" or status.startswith("FAILED:"):
-            age = now - created_at
-            max_age = timedelta(minutes=30)
+        if status_raw == "RUNNING":
             if age < max_age:
                 active_builds.append({
                     "build_id": build_id,
-                    "status": "running" if status == "RUNNING" else "failed",
-                    "original_name": f"App Project (Build {build_id[:6]})",
+                    "status": "running",
+                    "original_name": b["original_filename"] or "App Project",
                     "created_at": created_at.isoformat() + "Z",
-                    "time_remaining": "Currently Compiling..." if status == "RUNNING" else "Build Failed"
+                    "time_remaining": "Currently Compiling..."
                 })
-
-    # 2. Fetch successful completed builds from metadata
-    for apk_id, info in metadata.items():
-        try:
-            created_at_str = info.get("created_at")
-            created_at = datetime.strptime(created_at_str.replace('Z', ''), "%Y-%m-%dT%H:%M:%S.%f")
-            age = now - created_at
-            
-            max_age = timedelta(minutes=30)
+        elif status_raw.startswith("SUCCESS:"):
+            apk_id = b["apk_id"]
             if age < max_age:
                 remaining = max_age - age
                 mins_rem = int(remaining.total_seconds() // 60)
                 secs_rem = int(remaining.total_seconds() % 60)
                 time_remaining_str = f"{mins_rem}m {secs_rem}s remaining"
                 
-                # Check if file actually exists
+                # Check if file exists
                 apks_dir = get_apks_dir()
-                file_path = os.path.join(apks_dir, info["filename"])
+                file_path = os.path.join(apks_dir, b["filename"] or "")
                 if os.path.exists(file_path):
                     active_builds.append({
+                        "build_id": build_id,
                         "status": "success",
                         "apk_id": apk_id,
-                        "original_name": info.get("original_name", "App Project"),
-                        "filename": info["filename"],
-                        "size_bytes": info["size_bytes"],
-                        "duration_seconds": info.get("build_duration_seconds", 0),
-                        "created_at": created_at_str,
+                        "original_name": b["original_filename"] or "App Project",
+                        "filename": b["filename"] or "",
+                        "size_bytes": b["size_bytes"] or 0,
+                        "duration_seconds": b["duration_seconds"] or 0,
+                        "created_at": created_at.isoformat() + "Z",
                         "time_remaining": time_remaining_str
                     })
-        except Exception as e:
-            logger.error(f"Error parsing recent build {apk_id}: {e}")
-            
-    # Sort by created time descending
-    active_builds.sort(key=lambda x: x["created_at"], reverse=True)
+            else:
+                # Mark as expired in DB
+                if apk_id:
+                    try:
+                        expire_apk(apk_id)
+                    except Exception:
+                        pass
+        elif status_raw.startswith("FAILED:"):
+            if age < max_age:
+                active_builds.append({
+                    "build_id": build_id,
+                    "status": "failed",
+                    "original_name": b["original_filename"] or "App Project",
+                    "created_at": created_at.isoformat() + "Z",
+                    "time_remaining": "Build Failed"
+                })
+                
     return jsonify(active_builds)
 
 @main_bp.route('/clear-all-data', methods=['POST'])
 def clear_all_data():
-    # 1. Clear apks metadata and files
-    from services.cleaner import get_metadata_path, save_metadata
-    apks_dir = get_apks_dir()
-    for f in os.listdir(apks_dir):
-        if f != 'metadata.json':
-            try:
-                os.remove(os.path.join(apks_dir, f))
-            except Exception:
-                pass
-    save_metadata({}) # Reset metadata
+    from flask import session
+    from services.db import clear_user_builds, get_recent_builds
+    user_id = session.get('user_id')
     
-    # 2. Clear logs
-    logs_dir = get_logs_dir()
-    for f in os.listdir(logs_dir):
-        try:
-            os.remove(os.path.join(logs_dir, f))
-        except Exception:
-            pass
-            
-    # 3. Clear uploads
-    uploads_dir = get_uploads_dir()
-    for f in os.listdir(uploads_dir):
-        try:
-            os.remove(os.path.join(uploads_dir, f))
-        except Exception:
-            pass
-            
-    # 4. Clear temp
-    temp_dir = get_temp_dir()
-    for f in os.listdir(temp_dir):
-        path = os.path.join(temp_dir, f)
-        try:
-            if os.path.isdir(path):
-                cleanup_directory(path)
-            else:
-                os.remove(path)
-        except Exception:
-            pass
-            
-    return jsonify({"status": "success", "message": "All local data has been successfully cleared from the server."})
+    try:
+        # Get all builds of the user to delete their associated APKs and logs
+        user_builds = get_recent_builds(user_id=user_id, limit=200)
+        
+        # 1. Clear apks files
+        apks_dir = get_apks_dir()
+        for b in user_builds:
+            if b["filename"]:
+                file_path = os.path.join(apks_dir, b["filename"])
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+                        
+        # 2. Clear logs and status files
+        logs_dir = get_logs_dir()
+        for b in user_builds:
+            build_id = b["build_id"]
+            for ext in ('.log', '.status'):
+                file_path = os.path.join(logs_dir, f"{build_id}{ext}")
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+                        
+        # 3. Clear database entries for this user
+        clear_user_builds(user_id)
+        
+        # 4. Clear temporary uploads & temp extraction directories
+        uploads_dir = get_uploads_dir()
+        for b in user_builds:
+            build_id = b["build_id"]
+            for f in os.listdir(uploads_dir):
+                if f.startswith(build_id):
+                    try:
+                        os.remove(os.path.join(uploads_dir, f))
+                    except Exception:
+                        pass
+            temp_dir = get_temp_dir()
+            build_temp_path = os.path.join(temp_dir, build_id)
+            if os.path.exists(build_temp_path):
+                cleanup_directory(build_temp_path)
+                
+    except Exception as e:
+        logger.error(f"Error during clear_all_data: {e}")
+        return jsonify({"status": "error", "message": f"Failed to clear user data: {str(e)}"}), 500
+        
+    return jsonify({"status": "success", "message": "All your local data has been successfully cleared from the server."})
 
 @main_bp.route('/latest-update')
 def get_latest_update():
