@@ -27,6 +27,13 @@ def create_app():
             os.makedirs(folder_path, exist_ok=True)
             logger.info(f"Created directory: {folder_path}")
             
+    # Set Flask session secret key
+    app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default-dev-secret-key-for-apk-builder-studio')
+            
+    # Initialize database
+    from services.db import init_db
+    init_db()
+            
     # Register blueprints
     app.register_blueprint(main_bp)
     app.register_blueprint(stream_bp)
