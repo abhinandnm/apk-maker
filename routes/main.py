@@ -35,7 +35,17 @@ def get_temp_dir():
     os.makedirs(temp_dir, exist_ok=True)
     return temp_dir
 
+import re
+
+UUID_REGEX = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.I)
+
+def is_valid_build_id(build_id):
+    return bool(build_id and UUID_REGEX.match(str(build_id)))
+
 def write_status(build_id, status_str):
+    if not is_valid_build_id(build_id):
+        logger.error(f"Invalid build_id provided for write_status: {build_id}")
+        return
     status_file = os.path.join(get_logs_dir(), f"{build_id}.status")
     try:
         with open(status_file, "w", encoding="utf-8") as f:
@@ -44,6 +54,8 @@ def write_status(build_id, status_str):
         logger.error(f"Failed to write status for build {build_id}: {e}")
 
 def read_status(build_id):
+    if not is_valid_build_id(build_id):
+        return "UNKNOWN"
     status_file = os.path.join(get_logs_dir(), f"{build_id}.status")
     if not os.path.exists(status_file):
         return "UNKNOWN"
@@ -53,6 +65,7 @@ def read_status(build_id):
     except Exception as e:
         logger.error(f"Failed to read status for build {build_id}: {e}")
         return "UNKNOWN"
+
 
 def get_build_start_time(build_id):
     log_path = os.path.join(get_logs_dir(), f"{build_id}.log")
